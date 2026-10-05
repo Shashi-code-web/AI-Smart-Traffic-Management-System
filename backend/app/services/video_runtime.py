@@ -155,6 +155,19 @@ class VideoRuntime:
                 else:
                     annotated = frame
 
+                if mode == "AI_VIDEO" and pipeline is not None:
+                    snapshot = pipeline.snapshot
+                    cv2.putText(
+                        annotated,
+                        f"Signal: {snapshot.active_direction} | Green: {snapshot.green_seconds}s",
+                        (18, 62),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.62,
+                        (255, 255, 255),
+                        2,
+                        cv2.LINE_AA,
+                    )
+
                 cv2.putText(
                     annotated,
                     "AI VIDEO" if mode == "AI_VIDEO" else "SIMULATION VIDEO",
@@ -191,6 +204,31 @@ class VideoRuntime:
 
     def _annotate(self, frame, pipeline: TrafficPipeline):
         annotated = frame.copy()
+        height, width = annotated.shape[:2]
+
+        for lane, zone in pipeline.lane_mapper.zones.items():
+            x1 = int(zone.x1 * width)
+            y1 = int(zone.y1 * height)
+            x2 = int(zone.x2 * width)
+            y2 = int(zone.y2 * height)
+            cv2.rectangle(
+                annotated,
+                (x1, y1),
+                (x2, y2),
+                (120, 120, 120),
+                1,
+            )
+            cv2.putText(
+                annotated,
+                lane.value,
+                (x1 + 6, max(18, y1 + 20)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.42,
+                (220, 220, 220),
+                1,
+                cv2.LINE_AA,
+            )
+
         for detection in pipeline.last_detections:
             x1, y1, x2, y2 = detection.bbox
             cv2.rectangle(
