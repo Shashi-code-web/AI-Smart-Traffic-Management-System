@@ -11,6 +11,7 @@ _demo = DemoTrafficSource()
 def _from_live(pipeline):
     return TrafficSnapshot(
         total_vehicles=pipeline.current_vehicle_count,
+        vehicle_type_counts=pipeline.vehicle_type_counts,
         active_direction=pipeline.active_direction,
         remaining_seconds=pipeline.green_seconds,
         lanes=[
@@ -46,6 +47,7 @@ def snapshot():
     ]
     return TrafficSnapshot(
         total_vehicles=sum(state.counts.values()),
+        vehicle_type_counts={},
         active_direction=state.active_direction,
         remaining_seconds=state.green_seconds,
         lanes=lanes,
