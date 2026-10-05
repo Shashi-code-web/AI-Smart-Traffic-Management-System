@@ -75,6 +75,4 @@ def test_pipeline_counts_lanes_current_vehicles_and_unique_types():
     assert second.lane_counts[Lane.NORTH.value] == 1
     assert second.lane_counts[Lane.EAST.value] == 1
     assert second.lane_counts[Lane.WEST.value] == 1
-    assert second.active_direction == Lane.NORTH.value or second.active_direction in {
-        lane.value for lane in Lane
-    }
+    assert second.active_direction == Lane.NORTH.value
