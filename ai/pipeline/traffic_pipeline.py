@@ -13,6 +13,7 @@ from ai.signals.adaptive_signal import AdaptiveSignalController, SignalConfig
 class PipelineSnapshot:
     total_tracked: int
     current_vehicle_count: int
+    vehicle_type_counts: dict[str, int]
     lane_counts: dict[str, int]
     lane_densities: dict[str, str]
     active_direction: str
@@ -44,6 +45,7 @@ class TrafficPipeline:
         return PipelineSnapshot(
             total_tracked=0,
             current_vehicle_count=0,
+            vehicle_type_counts={},
             lane_counts=counts,
             lane_densities={lane: self.density.classify(0).value for lane in counts},
             active_direction=Lane.NORTH.value,
@@ -68,6 +70,7 @@ class TrafficPipeline:
                 tracked_objects.append((detection.track_id, detection.label))
 
         self.tracker_counter.update(tracked_objects)
+        vehicle_type_counts = self.tracker_counter.snapshot()
         decision = self.signal.decide(lane_counts)
         densities = {
             lane: self.density.classify(count).value
@@ -76,6 +79,7 @@ class TrafficPipeline:
         self._last = PipelineSnapshot(
             total_tracked=self.tracker_counter.total,
             current_vehicle_count=sum(lane_counts.values()),
+            vehicle_type_counts=vehicle_type_counts,
             lane_counts=lane_counts,
             lane_densities=densities,
             active_direction=decision.direction,
