@@ -6,7 +6,7 @@ An offline-first B.Tech minor project for intelligent traffic monitoring and ada
 
 - **Frontend:** React + Vite
 - **Backend:** FastAPI
-- **AI:** Local YOLO vehicle detection + ByteTrack-compatible tracking
+- **AI:** Local Ultralytics YOLO vehicle detection + ByteTrack tracking
 - **Traffic intelligence:** vehicle counting, lane density classification, adaptive signal decision
 - **Database:** SQLite for local development; designed to remain usable without a database for demo mode
 - **Presentation mode:** local/offline demo is the primary reliability path
@@ -63,23 +63,41 @@ The system should still start in demo mode when the model file is unavailable. L
 
 ## Development status
 
-### Completed
-- Project foundation
-- Offline-first configuration
-- FastAPI health/system endpoints
-- React dashboard shell
-- YOLO vehicle detector adapter
-- ByteTrack adapter
-- Unique vehicle counting
-- Density classifier
-- Adaptive signal decision logic
-- Traffic snapshot API
+### Phase 3 status
 
-### Next
-- Video ingestion and frame-processing service
-- Lane/ROI configuration and line-crossing counts
-- Live dashboard integration
-- signal state machine with yellow/all-red safety phases
-- analytics and persistence
-- emergency vehicle priority
-- automated tests and end-to-end demo verification
+Implemented in the repository:
+- Local video validation for MP4/AVI/MOV/MKV/M4V
+- Background video worker with MJPEG output
+- Local YOLO model loading from `models/yolo/`
+- ByteTrack persistence across consecutive frames
+- Vehicle filtering for bicycle/car/motorcycle/bus/truck
+- Unique tracked-vehicle counting and type counts
+- Normalized four-way lane mapping
+- Lane-wise density classification
+- Adaptive signal demand decision
+- Detection overlays, track IDs, lane regions, and signal information on the video stream
+- Backend traffic snapshots sourced from the live AI pipeline
+- Phase 3 unit tests and CI workflow
+
+### Running real AI video
+
+1. Install backend dependencies:
+   `pip install -r backend/requirements.txt`
+2. Place the local YOLO weight at:
+   `models/yolo/yolo26n.pt`
+3. Place a traffic video at:
+   `data/videos/demo.mp4`
+4. Start the FastAPI backend and React frontend.
+5. Start **AI Video** from the dashboard.
+
+Model weights are intentionally not committed to Git. The runtime uses Ultralytics YOLO tracking with ByteTrack persistence for consecutive video frames.
+
+### Remaining phases
+
+- Phase 4: robust live dashboard integration and real-time UX
+- Phase 5: signal state machine with yellow/all-red safety phases
+- Phase 6: analytics, historical persistence, and prediction
+- Phase 7: emergency vehicle priority
+- Phase 8: reliability, validation, and end-to-end testing
+- Phase 9: final presentation UI/demo hardening
+- Phase 10: documentation, diagrams, PPT, viva preparation, and final verification
