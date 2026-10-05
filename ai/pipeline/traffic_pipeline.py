@@ -4,7 +4,7 @@ from typing import Any
 
 from ai.counting.vehicle_counter import VehicleCounter
 from ai.density.traffic_density import DensityConfig, TrafficDensityEstimator
-from ai.detection.vehicle_detector import VehicleDetector
+from ai.detection.vehicle_detector import Detection, VehicleDetector
 from ai.lane.lane_mapper import Lane, LaneMapper
 from ai.signals.adaptive_signal import AdaptiveSignalController, SignalConfig
 
@@ -36,6 +36,7 @@ class TrafficPipeline:
         self.density = TrafficDensityEstimator(density_config)
         self.signal = AdaptiveSignalController(signal_config)
         self.lane_mapper = LaneMapper()
+        self.last_detections: list[Detection] = []
         self._last = self._empty_snapshot()
 
     def _empty_snapshot(self) -> PipelineSnapshot:
@@ -54,6 +55,7 @@ class TrafficPipeline:
     def process_frame(self, frame: Any) -> PipelineSnapshot:
         height, width = frame.shape[:2]
         detections = self.detector.track(frame)
+        self.last_detections = detections
         lane_counts = {lane.value: 0 for lane in Lane}
         tracked_objects: list[tuple[int, str]] = []
 

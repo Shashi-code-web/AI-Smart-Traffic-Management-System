@@ -11,3 +11,17 @@ class VideoStatus(BaseModel):
     height: int = Field(ge=0)
     duration_seconds: float = Field(ge=0)
     error: str | None = None
+
+
+class VideoStartRequest(BaseModel):
+    path: str | None = None
+    use_ai: bool = True
+
+
+class VideoSession(BaseModel):
+    running: bool
+    mode: str
+    source: str | None = None
+    error: str | None = None
+    frames_processed: int = Field(ge=0)
+    started_at: str | None = None
