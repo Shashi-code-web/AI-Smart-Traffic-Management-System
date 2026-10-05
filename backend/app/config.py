@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     max_green_seconds: int = 60
     yellow_seconds: int = 3
     all_red_seconds: int = 1
+    demo_video_path: str = "data/videos/demo.mp4"
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()
