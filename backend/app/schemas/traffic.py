@@ -9,6 +9,7 @@ class LaneTraffic(BaseModel):
 
 class TrafficSnapshot(BaseModel):
     total_vehicles: int = Field(ge=0)
+    vehicle_type_counts: dict[str, int] = {}
     active_direction: str
     remaining_seconds: int = Field(ge=0)
     lanes: list[LaneTraffic]
