@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Activity, Car, Gauge, Play, Radio, RefreshCw, Settings, ShieldAlert,
-  Signal, Square, Video, Wifi, WifiOff,
+  Activity, BarChart3, Car, Gauge, Play, Radio, RefreshCw, Settings, ShieldAlert,
+  Signal, Square, TrendingUp, Video, Wifi, WifiOff,
 } from 'lucide-react';
 import {
   API_BASE, getHealth, getSystemStatus, getTrafficSnapshot, getVideoSession,
@@ -51,6 +51,9 @@ export default function App() {
   const [video, setVideo] = useState(null);
   const [sources, setSources] = useState([]);
   const [selectedSource, setSelectedSource] = useState('');
+  const [analyticsSummary, setAnalyticsSummary] = useState(null);
+  const [analyticsHistory, setAnalyticsHistory] = useState([]);
+  const [analyticsPrediction, setAnalyticsPrediction] = useState(null);
   const [view, setView] = useState('overview');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -66,6 +69,17 @@ export default function App() {
         getVideoSession(),
         getVideoSources(),
       ]);
+
+      if (view === 'analytics') {
+        const [summaryState, historyState, predictionState] = await Promise.all([
+          getAnalyticsSummary(100),
+          getAnalyticsHistory(20),
+          getAnalyticsPrediction(5, 100),
+        ]);
+        setAnalyticsSummary(summaryState);
+        setAnalyticsHistory(historyState);
+        setAnalyticsPrediction(predictionState);
+      }
 
       setStatus(system);
       setHealth(healthState);
@@ -85,7 +99,7 @@ export default function App() {
       setChecking(false);
       setError(err.message);
     }
-  }, [selectedSource]);
+  }, [selectedSource, view]);
 
   useEffect(() => {
     load();
@@ -197,14 +211,116 @@ export default function App() {
 
         {error && <div className="error-banner">{error}</div>}
 
-        {view !== 'overview' && (
+        {view === 'analytics' ? (
+          <section className="analytics-layout">
+            <div className="metrics">
+              <Metric
+                icon={BarChart3}
+                label="Data points"
+                value={analyticsSummary?.data_points ?? '—'}
+                note="Persisted local samples"
+              />
+              <Metric
+                icon={Gauge}
+                label="Average vehicles"
+                value={analyticsSummary?.average_vehicles ?? '—'}
+                note="Selected history window"
+              />
+              <Metric
+                icon={Car}
+                label="Peak vehicles"
+                value={analyticsSummary?.peak_vehicles ?? '—'}
+                note="Highest recorded load"
+              />
+              <Metric
+                icon={TrendingUp}
+                label="5-min forecast"
+                value={analyticsPrediction?.predictions?.[4]?.predicted_total_vehicles ?? '—'}
+                note={analyticsPrediction?.predictions?.[4]?.confidence
+                  ? analyticsPrediction.predictions[4].confidence + ' confidence'
+                  : 'Building forecast'}
+              />
+            </div>
+
+            <div className="grid-main">
+              <div className="card analytics-card">
+                <div className="section-head">
+                  <div>
+                    <h2>Traffic History</h2>
+                    <p>Latest persisted traffic samples</p>
+                  </div>
+                  <span className="live-tag">{analyticsSummary?.busiest_lane || '—'} busiest</span>
+                </div>
+                <div className="lane-table">
+                  <div className="lane-row lane-header">
+                    <span>Time</span><span>Total</span><span>North</span><span>East</span><span>Signal</span>
+                  </div>
+                  {analyticsHistory.length ? analyticsHistory.slice().reverse().map((point) => (
+                    <div className="lane-row" key={point.recorded_at + point.total_vehicles}>
+                      <span>{new Date(point.recorded_at).toLocaleTimeString()}</span>
+                      <strong>{point.total_vehicles}</strong>
+                      <span>{point.north}</span>
+                      <span>{point.east}</span>
+                      <span>{point.signal_state}</span>
+                    </div>
+                  )) : (
+                    <div className="analytics-empty">
+                      Traffic history will populate automatically while the dashboard is running.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="card analytics-card">
+                <div className="section-head">
+                  <div>
+                    <h2>Traffic Forecast</h2>
+                    <p>Short-term offline trend prediction</p>
+                  </div>
+                </div>
+                <div className="forecast-list">
+                  {(analyticsPrediction?.predictions || []).map((prediction) => (
+                    <div className="forecast-row" key={prediction.horizon_minutes}>
+                      <span>+{prediction.horizon_minutes} min</span>
+                      <strong>{prediction.predicted_total_vehicles}</strong>
+                      <small>{prediction.confidence}</small>
+                    </div>
+                  ))}
+                  {!analyticsPrediction?.predictions?.length && (
+                    <div className="analytics-empty">
+                      At least two historical samples are needed to forecast a trend.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="card analytics-card">
+              <div className="section-head">
+                <div>
+                  <h2>Lane Averages</h2>
+                  <p>Average vehicles per persisted sample</p>
+                </div>
+                <span className="live-tag">Current {analyticsSummary?.current_vehicles ?? '—'}</span>
+              </div>
+              <div className="lane-average-grid">
+                {Object.entries(analyticsSummary?.lane_averages || {}).map(([lane, value]) => (
+                  <div className="lane-average" key={lane}>
+                    <span>{titleCase(lane)}</span>
+                    <strong>{value}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : view !== 'overview' ? (
           <div className="card info-panel">
             <strong>{titleCase(view)} module</strong>
             <span>
               This dashboard is connected to the live backend. Advanced {view} intelligence is implemented in its later project phase.
             </span>
           </div>
-        )}
+        ) : null}
 
         <section className="metrics">
           <Metric icon={Car} label="Vehicles detected" value={traffic?.total_vehicles ?? '—'} note={video?.running ? 'Live AI snapshot' : 'Current traffic snapshot'} />
