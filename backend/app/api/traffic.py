@@ -31,7 +31,7 @@ def _from_live(pipeline):
 def snapshot():
     session = video_runtime.status()
     live = video_runtime.snapshot()
-    if session.running and session.mode == "AI_VIDEO" and live is not None:
+    if session.mode == "AI_VIDEO" and live is not None:
         return _from_live(live)
 
     state = _demo.snapshot()
