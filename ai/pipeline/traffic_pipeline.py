@@ -5,6 +5,7 @@ from typing import Any
 
 from ai.counting.vehicle_counter import VehicleCounter
 from ai.density.traffic_density import DensityConfig, TrafficDensityEstimator
+from ai.emergency.emergency_vehicle import EmergencyVehicleDetector, emergency_priority_allowed
 from ai.detection.vehicle_detector import Detection, VehicleDetector
 from ai.lane.lane_mapper import Lane, LaneMapper
 from ai.signals.adaptive_signal import AdaptiveSignalController, SignalConfig, SignalState
@@ -24,6 +25,11 @@ class PipelineSnapshot:
     green_seconds: int
     model_ready: bool
     signal_reason: str
+    emergency_detected: bool
+    emergency_type: str | None
+    emergency_direction: str | None
+    emergency_confidence: float
+    priority_active: bool
     processed_at: str
 
 
@@ -42,6 +48,7 @@ class TrafficPipeline:
         self.density = TrafficDensityEstimator(density_config)
         self.signal = AdaptiveSignalController(signal_config)
         self.lane_mapper = LaneMapper()
+        self.emergency_detector = EmergencyVehicleDetector(self.lane_mapper)
         self.last_detections: list[Detection] = []
         self._last = self._empty_snapshot()
 
@@ -61,6 +68,11 @@ class TrafficPipeline:
             green_seconds=signal.green_seconds,
             model_ready=self.detector.available,
             signal_reason=signal.reason,
+            emergency_detected=False,
+            emergency_type=None,
+            emergency_direction=None,
+            emergency_confidence=0.0,
+            priority_active=False,
             processed_at=datetime.now(timezone.utc).isoformat(),
         )
 
@@ -81,11 +93,17 @@ class TrafficPipeline:
 
         self.tracker_counter.update(tracked_objects)
         vehicle_type_counts = self.tracker_counter.snapshot()
+        emergency = self.emergency_detector.detect(detections, width, height)
+        priority_direction = emergency.direction if emergency_priority_allowed(emergency) else None
         densities = {
             lane: self.density.classify(count).value
             for lane, count in lane_counts.items()
         }
-        signal = self.signal.update(lane_counts, now=now)
+        signal = self.signal.update(
+            lane_counts,
+            now=now,
+            priority_direction=priority_direction,
+        )
         self._last = PipelineSnapshot(
             total_tracked=self.tracker_counter.total,
             current_vehicle_count=sum(lane_counts.values()),
@@ -99,6 +117,11 @@ class TrafficPipeline:
             green_seconds=signal.green_seconds,
             model_ready=True,
             signal_reason=signal.reason,
+            emergency_detected=emergency.detected,
+            emergency_type=emergency.kind,
+            emergency_direction=emergency.direction,
+            emergency_confidence=emergency.confidence,
+            priority_active=priority_direction is not None,
             processed_at=datetime.now(timezone.utc).isoformat(),
         )
         return self._last
