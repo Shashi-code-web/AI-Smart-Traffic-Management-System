@@ -174,6 +174,22 @@ class VideoRuntime:
                         2,
                         cv2.LINE_AA,
                     )
+                    if snapshot.emergency_detected:
+                        emergency_text = (
+                            f"EMERGENCY: {snapshot.emergency_type or 'VEHICLE'} | "
+                            f"{snapshot.emergency_direction or 'UNMAPPED'} | "
+                            f"{snapshot.emergency_confidence * 100:.0f}%"
+                        )
+                        cv2.putText(
+                            annotated,
+                            emergency_text,
+                            (18, 92),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.58,
+                            (60, 80, 255),
+                            2,
+                            cv2.LINE_AA,
+                        )
 
                 cv2.putText(
                     annotated,
