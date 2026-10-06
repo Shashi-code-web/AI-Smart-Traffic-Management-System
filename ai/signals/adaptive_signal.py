@@ -168,6 +168,14 @@ class AdaptiveSignalController:
             self.request_priority(priority_direction)
         else:
             self.clear_priority()
+        if (
+            self._state is SignalState.GREEN
+            and self._priority_direction == self._direction
+        ):
+            self._green_seconds = max(
+                self._green_seconds,
+                self._clamp_green(self.config.emergency_green),
+            )
         current_time = time.monotonic() if now is None else now
         if self._phase_started_at is None:
             self._phase_started_at = current_time
