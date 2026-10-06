@@ -53,7 +53,7 @@ npm install
 npm run dev
 ```
 
-The dashboard uses `http://127.0.0.1:8000` by default. Copy `backend/.env.example` to `.env` if configuration needs to be changed.
+The dashboard uses `http://127.0.0.1:8000` by default. The backend accepts both `localhost:5173` and `127.0.0.1:5173`. Copy `backend/.env.example` to `backend/.env` if configuration needs to be changed.
 
 ## AI model
 
@@ -63,7 +63,7 @@ The system should still start in demo mode when the model file is unavailable. L
 
 ## Development status
 
-### Phase 3 status
+### Completed through Phase 3
 
 Implemented in the repository:
 - Local video validation for MP4/AVI/MOV/MKV/M4V
@@ -94,7 +94,6 @@ Model weights are intentionally not committed to Git. The runtime uses Ultralyti
 
 ### Remaining phases
 
-- Phase 4: robust live dashboard integration and real-time UX
 - Phase 5: signal state machine with yellow/all-red safety phases
 - Phase 6: analytics, historical persistence, and prediction
 - Phase 7: emergency vehicle priority
@@ -103,7 +102,7 @@ Model weights are intentionally not committed to Git. The runtime uses Ultralyti
 - Phase 10: documentation, diagrams, PPT, viva preparation, and final verification
 
 
-### Phase 4 status
+### Current Phase 4 status
 
 Implemented in the repository:
 - Local traffic video source discovery through `GET /api/video/sources`
