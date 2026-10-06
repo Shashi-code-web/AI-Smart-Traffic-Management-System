@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from ..config import settings
 from ..database.session import SessionLocal
 from ..schemas.diagnostics import DiagnosticCheck, SystemDiagnostics
+from ..schemas.system import SystemStatus
 from ..services.video_validator import ALLOWED_SUFFIXES, VIDEO_ROOT, inspect_video
 
 router = APIRouter(prefix="/api/system", tags=["system"])
@@ -60,14 +61,14 @@ def system_diagnostics():
     return diagnostics()
 
 
-@router.get("/status")
+@router.get("/status", response_model=SystemStatus)
 def status():
     check = diagnostics()
     video_ready = next((item.ok for item in check.checks if item.name == "video_directory"), False)
     database_ready = next((item.ok for item in check.checks if item.name == "database"), False)
-    return {
-        "mode": "demo" if settings.demo_mode else "live",
-        "ai_ready": Path(settings.model_path).exists(),
-        "database_ready": database_ready,
-        "video_ready": video_ready,
-    }
+    return SystemStatus(
+        mode="demo" if settings.demo_mode else "live",
+        ai_ready=Path(settings.model_path).exists(),
+        database_ready=database_ready,
+        video_ready=video_ready,
+    )
