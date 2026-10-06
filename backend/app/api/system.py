@@ -50,8 +50,9 @@ def _model_check() -> DiagnosticCheck:
 
 def diagnostics() -> SystemDiagnostics:
     checks = [_database_check(), _video_directory_check(), _model_check()]
+    critical_checks = [check for check in checks if check.name != "local_model"]
     return SystemDiagnostics(
-        healthy=all(check.ok for check in checks),
+        healthy=all(check.ok for check in critical_checks),
         checks=checks,
     )
 
