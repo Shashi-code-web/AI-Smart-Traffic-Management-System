@@ -1,16 +1,30 @@
 export const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8000';
 
-async function getJson(path, options) {
-  const response = await fetch(API_BASE + path, options);
-  if (!response.ok) {
-    let detail = 'Backend returned ' + response.status;
-    try {
-      const body = await response.json();
-      detail = body.detail || detail;
-    } catch (_) {}
-    throw new Error(detail);
+async function getJson(path, options = {}) {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), options.timeout ?? 5000);
+  try {
+    const response = await fetch(API_BASE + path, {
+      ...options,
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      let detail = 'Backend returned ' + response.status;
+      try {
+        const body = await response.json();
+        detail = body.detail || detail;
+      } catch (_) {}
+      throw new Error(detail);
+    }
+    return response.json();
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('Backend request timed out');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
   }
-  return response.json();
 }
 
 export async function getSystemStatus() {
@@ -30,15 +44,19 @@ export async function getVideoStatus(path) {
   return getJson('/api/video/status' + query);
 }
 
+export async function getVideoSources() {
+  return getJson('/api/video/sources');
+}
+
 export async function getVideoSession() {
   return getJson('/api/video/session');
 }
 
-export async function startVideo(useAi = true) {
+export async function startVideo(path, useAi = true) {
   return getJson('/api/video/start', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ use_ai: useAi }),
+    body: JSON.stringify({ path: path || null, use_ai: useAi }),
   });
 }
 
