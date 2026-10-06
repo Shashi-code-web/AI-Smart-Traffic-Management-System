@@ -23,21 +23,26 @@ def main() -> int:
         ("video session", lambda: client.get("/api/video/session")),
     ]
 
-    failed = []
+    failures = []
     for name, request in checks:
         response = request()
         if response.status_code != 200:
-            failed.append(f"{name}: HTTP {response.status_code} {response.text}")
+            failures.append(f"{name}: HTTP {response.status_code} {response.text}")
 
-    if failed:
+    if failures:
         print("FINAL VERIFICATION FAILED")
-        for item in failed:
-            print(" -", item)
+        for failure in failures:
+            print(" -", failure)
         return 1
 
     root = client.get("/").json()
-    if root.get("phase") != 7:
-        print(f"FINAL VERIFICATION FAILED: expected phase 7, got {root.get('phase')}")
+    if root.get("phase") != 10:
+        print(f"FINAL VERIFICATION FAILED: expected phase 10, got {root.get('phase')}")
+        return 1
+
+    health = client.get("/health").json()
+    if health.get("version") != "1.0.0":
+        print(f"FINAL VERIFICATION FAILED: expected version 1.0.0, got {health.get('version')}")
         return 1
 
     diagnostics = client.get("/api/system/diagnostics").json()
@@ -53,6 +58,7 @@ def main() -> int:
 
     print("FINAL VERIFICATION PASSED")
     print("Application:", root["name"])
+    print("Version:", health["version"])
     print("Phase:", root["phase"])
     print("Diagnostics:", diagnostics)
     return 0
