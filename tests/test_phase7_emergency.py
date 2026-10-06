@@ -127,3 +127,33 @@ def test_phase7_emergency_priority_uses_safe_clearance_sequence():
     assert sustained_green.state == SignalState.GREEN
     assert sustained_green.direction == "EAST"
     assert sustained_green.green_seconds == 20
+
+
+class _FakeDetector:
+    available = True
+
+    def track(self, _frame):
+        return [
+            Detection(
+                class_id=80,
+                label="ambulance",
+                confidence=0.92,
+                bbox=(30, 0, 70, 30),
+                track_id=99,
+            )
+        ]
+
+
+def test_phase7_pipeline_propagates_emergency_priority():
+    from ai.pipeline.traffic_pipeline import TrafficPipeline
+
+    frame = np.zeros((100, 100, 3), dtype=np.uint8)
+    pipeline = TrafficPipeline("models/yolo/test.pt")
+    pipeline.detector = _FakeDetector()
+
+    first = pipeline.process_frame(frame, now=0)
+    assert first.emergency_detected is True
+    assert first.emergency_type == "AMBULANCE"
+    assert first.emergency_direction == Lane.NORTH.value
+    assert first.priority_active is True
+    assert first.signal_state == SignalState.GREEN
