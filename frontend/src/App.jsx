@@ -4,8 +4,9 @@ import {
   Signal, Square, TrendingUp, Video, Wifi, WifiOff,
 } from 'lucide-react';
 import {
-  API_BASE, getHealth, getSystemStatus, getTrafficSnapshot, getVideoSession,
-  getVideoSources, startVideo, stopVideo,
+  API_BASE, getAnalyticsHistory, getAnalyticsPrediction, getAnalyticsSummary,
+  getHealth, getSystemDiagnostics, getSystemStatus, getTrafficSnapshot,
+  getVideoSession, getVideoSources, startVideo, stopVideo,
 } from './services/api';
 
 function titleCase(value = '') {
@@ -54,6 +55,7 @@ export default function App() {
   const [analyticsSummary, setAnalyticsSummary] = useState(null);
   const [analyticsHistory, setAnalyticsHistory] = useState([]);
   const [analyticsPrediction, setAnalyticsPrediction] = useState(null);
+  const [diagnostics, setDiagnostics] = useState(null);
   const [view, setView] = useState('overview');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -62,12 +64,13 @@ export default function App() {
 
   const load = useCallback(async () => {
     try {
-      const [system, healthState, snapshot, session, localSources] = await Promise.all([
+      const [system, healthState, snapshot, session, localSources, diagnosticsState] = await Promise.all([
         getSystemStatus(),
         getHealth(),
         getTrafficSnapshot(),
         getVideoSession(),
         getVideoSources(),
+        getSystemDiagnostics(),
       ]);
 
       if (view === 'analytics') {
@@ -86,6 +89,7 @@ export default function App() {
       setTraffic(snapshot);
       setVideo(session);
       setSources(localSources);
+      setDiagnostics(diagnosticsState);
       setError('');
       setChecking(false);
 
@@ -211,7 +215,77 @@ export default function App() {
 
         {error && <div className="error-banner">{error}</div>}
 
-        {view === 'emergency' ? (
+        {view === 'settings' ? (
+          <section className="analytics-layout">
+            <div className="metrics">
+              <Metric
+                icon={Wifi}
+                label="Backend"
+                value={health?.status === 'ok' ? 'ONLINE' : 'OFFLINE'}
+                note={health?.version ? 'API v' + health.version : 'Health endpoint'}
+              />
+              <Metric
+                icon={Car}
+                label="AI model"
+                value={status?.ai_ready ? 'READY' : 'SIMULATION'}
+                note={status?.ai_ready ? 'Local YOLO available' : 'Offline fallback available'}
+              />
+              <Metric
+                icon={Radio}
+                label="Database"
+                value={status?.database_ready ? 'READY' : 'ERROR'}
+                note="SQLite local persistence"
+              />
+              <Metric
+                icon={Video}
+                label="Video sources"
+                value={sources.length}
+                note="Readable local sources"
+              />
+            </div>
+
+            <div className="grid-main">
+              <div className="card analytics-card">
+                <div className="section-head">
+                  <div>
+                    <h2>System Diagnostics</h2>
+                    <p>Phase 8 reliability checks</p>
+                  </div>
+                  <span className="live-tag">
+                    {diagnostics?.healthy ? 'HEALTHY' : 'CHECK REQUIRED'}
+                  </span>
+                </div>
+                <div className="diagnostic-list">
+                  {(diagnostics?.checks || []).map((check) => (
+                    <div className="diagnostic-row" key={check.name}>
+                      <span className={'diagnostic-dot ' + (check.ok ? 'ok' : 'bad')} />
+                      <div>
+                        <strong>{titleCase(check.name.replaceAll('_', ' '))}</strong>
+                        <small>{check.detail}</small>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="card analytics-card">
+                <div className="section-head">
+                  <div>
+                    <h2>Offline Demo Workflow</h2>
+                    <p>Designed for a 3–5 minute presentation</p>
+                  </div>
+                </div>
+                <div className="demo-steps">
+                  <div><b>01</b><span>Open Overview and verify backend + database.</span></div>
+                  <div><b>02</b><span>Select one of the local traffic videos.</span></div>
+                  <div><b>03</b><span>Start AI Video; use simulation mode when no local YOLO model is installed.</span></div>
+                  <div><b>04</b><span>Show signal phase, lane density, analytics, then Emergency view.</span></div>
+                  <div><b>05</b><span>Finish by showing Diagnostics and final system status.</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : view === 'emergency' ? (
           <section className="analytics-layout">
             <div className="metrics">
               <Metric
