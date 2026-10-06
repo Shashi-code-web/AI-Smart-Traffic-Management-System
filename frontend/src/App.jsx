@@ -71,7 +71,7 @@ export default function App() {
         getVideoSession(),
       ]);
       const localSources = includeSources ? await getVideoSources() : sources;
-      const diagnosticsState = view === 'settings' ? await getSystemDiagnostics() : diagnostics;
+      const diagnosticsState = includeSources && view === 'settings' ? await getSystemDiagnostics() : diagnostics;
 
       if (view === 'analytics') {
         const [summaryState, historyState, predictionState] = await Promise.all([
@@ -154,7 +154,7 @@ export default function App() {
   const refresh = async () => {
     setBusy(true);
     try {
-      await load();
+      await load(true);
     } finally {
       setBusy(false);
     }
