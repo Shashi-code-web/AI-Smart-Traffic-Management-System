@@ -7,7 +7,7 @@ An offline-first B.Tech minor project for intelligent traffic monitoring and ada
 - **Frontend:** React + Vite
 - **Backend:** FastAPI
 - **AI:** Local Ultralytics YOLO vehicle detection + ByteTrack tracking
-- **Traffic intelligence:** vehicle counting, lane density classification, adaptive signal timing with GREEN/YELLOW/ALL-RED safety phases, historical analytics, and short-term forecasting
+- **Traffic intelligence:** vehicle counting, lane density classification, adaptive signal timing with GREEN/YELLOW/ALL-RED safety phases, historical analytics, short-term forecasting, and emergency-vehicle priority
 - **Database:** SQLite for local development; designed to remain usable without a database for demo mode
 - **Presentation mode:** local/offline demo is the primary reliability path
 
@@ -100,7 +100,7 @@ Model weights are intentionally not committed to Git. The runtime uses Ultralyti
 - Phase 10: documentation, diagrams, PPT, viva preparation, and final verification
 
 
-### Completed through Phase 6
+### Completed through Phase 7
 
 Implemented in the repository:
 - Local traffic video source discovery through `GET /api/video/sources`
@@ -134,3 +134,17 @@ Phase 6 implements:
 - Database readiness reporting through the system-status endpoint
 - Phase 6 regression tests for persistence throttling, analytics calculations, prediction, and API contracts
 - Dedicated Phase 6 CI workflow
+
+Phase 7 implements:
+- Local YOLO support for emergency class labels such as ambulance, fire truck, police, and emergency vehicle
+- Emergency detection mapped to NORTH/EAST/SOUTH/WEST lane directions
+- Confidence-gated emergency priority requests
+- Safe preemption using the Phase 5 GREEN → YELLOW → ALL-RED transition sequence
+- Emergency priority persistence across subsequent safe cycles while the emergency remains detected
+- Emergency type, direction, confidence, and priority status exposed through the traffic API
+- Live video overlay for emergency detections
+- Dedicated Emergency dashboard view
+- Deterministic emergency detection, pipeline, and signal-preemption tests
+- Dedicated Phase 7 CI workflow
+
+Important: the standard YOLO vehicle model does not inherently recognize ambulance, fire-truck, or police classes. Actual emergency recognition requires a local YOLO model trained with the supported emergency class labels. The software remains offline-first and falls back safely when no emergency class is detected.
