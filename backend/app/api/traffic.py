@@ -27,6 +27,11 @@ def _from_live(pipeline) -> TrafficSnapshot:
         remaining_seconds=pipeline.remaining_seconds,
         green_seconds=pipeline.green_seconds,
         signal_reason=pipeline.signal_reason,
+        emergency_detected=pipeline.emergency_detected,
+        emergency_type=pipeline.emergency_type,
+        emergency_direction=pipeline.emergency_direction,
+        emergency_confidence=pipeline.emergency_confidence,
+        priority_active=pipeline.priority_active,
         lanes=[
             LaneTraffic(
                 direction=direction,
@@ -65,6 +70,11 @@ def snapshot():
             remaining_seconds=state.remaining_seconds,
             green_seconds=state.green_seconds,
             signal_reason=state.signal_reason,
+            emergency_detected=False,
+            emergency_type=None,
+            emergency_direction=None,
+            emergency_confidence=0.0,
+            priority_active=False,
             lanes=[
                 LaneTraffic(
                     direction=direction,
