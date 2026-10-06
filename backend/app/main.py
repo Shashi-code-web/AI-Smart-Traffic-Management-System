@@ -3,10 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database.session import Base, engine
 from .models.system_event import SystemEvent  # noqa: F401
+from .models.traffic_record import TrafficRecord  # noqa: F401
 from .api.health import router as health_router
 from .api.system import router as system_router
 from .api.traffic import router as traffic_router
 from .api.video import router as video_router
+from .api.analytics import router as analytics_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -22,6 +24,7 @@ app.include_router(health_router)
 app.include_router(system_router)
 app.include_router(traffic_router)
 app.include_router(video_router)
+app.include_router(analytics_router)
 
 
 @app.get("/")
