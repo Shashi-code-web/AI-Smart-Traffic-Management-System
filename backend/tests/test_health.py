@@ -9,7 +9,7 @@ def test_health():
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
-    assert response.json()["version"] == "0.6.0"
+    assert response.json()["version"] == "0.7.0
 
 
 def test_system_status():
@@ -18,7 +18,7 @@ def test_system_status():
     assert response.json()["mode"] == "demo"
 
 
-def test_root_reports_phase_six():
+def test_root_reports_phase_seven():
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json()["phase"] == 6
+    assert response.json()["phase"] == 7
