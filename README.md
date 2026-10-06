@@ -1,13 +1,13 @@
 # AI Smart Traffic Management System
 
-An offline-first B.Tech minor project for intelligent traffic monitoring and adaptive signal simulation.
+An offline-first B.Tech minor project for intelligent traffic monitoring and adaptive signal control simulation.
 
 ## Current architecture
 
 - **Frontend:** React + Vite
 - **Backend:** FastAPI
 - **AI:** Local Ultralytics YOLO vehicle detection + ByteTrack tracking
-- **Traffic intelligence:** vehicle counting, lane density classification, adaptive signal decision
+- **Traffic intelligence:** vehicle counting, lane density classification, adaptive signal timing with GREEN/YELLOW/ALL-RED safety phases
 - **Database:** SQLite for local development; designed to remain usable without a database for demo mode
 - **Presentation mode:** local/offline demo is the primary reliability path
 
@@ -102,7 +102,7 @@ Model weights are intentionally not committed to Git. The runtime uses Ultralyti
 - Phase 10: documentation, diagrams, PPT, viva preparation, and final verification
 
 
-### Current Phase 4 status
+### Phase 5 status
 
 Implemented in the repository:
 - Local traffic video source discovery through `GET /api/video/sources`
@@ -116,4 +116,13 @@ Implemented in the repository:
 - Responsive live-monitor controls and video metadata display
 - Phase 4 regression tests for inference resizing and completed AI session state
 
-Phase 4 intentionally does **not** implement the Phase 5 signal state machine, yellow/all-red transition logic, emergency priority, historical analytics, or prediction.
+Phase 5 implements:
+- Explicit GREEN → YELLOW → ALL-RED → GREEN transitions
+- Minimum and maximum green-time enforcement
+- Adaptive next-lane selection from current traffic demand
+- Yellow clearance before all-red safety clearance
+- All-red phase before the next direction becomes GREEN
+- API exposure of signal state, remaining phase time, next direction, and transition reason
+- Dashboard visualization of GREEN, YELLOW, and ALL-RED states
+- Deterministic unit tests for transition timing and conflict prevention
+- Dedicated Phase 5 CI workflow
