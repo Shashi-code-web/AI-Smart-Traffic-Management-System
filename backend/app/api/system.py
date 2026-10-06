@@ -1,36 +1,73 @@
 from pathlib import Path
 
 from fastapi import APIRouter
-from sqlalchemy import text
 
 from ..config import settings
 from ..database.session import SessionLocal
-from ..schemas.system import SystemStatus
+from ..schemas.diagnostics import DiagnosticCheck, SystemDiagnostics
 from ..services.video_validator import ALLOWED_SUFFIXES, VIDEO_ROOT, inspect_video
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 
 
-@router.get("/status", response_model=SystemStatus)
-def status():
-    VIDEO_ROOT.mkdir(parents=True, exist_ok=True)
-    has_readable_video = False
-    for path in VIDEO_ROOT.iterdir():
-        if path.is_file() and path.suffix.lower() in ALLOWED_SUFFIXES:
-            if inspect_video(str(path))["readable"]:
-                has_readable_video = True
-                break
-
+def _database_check() -> DiagnosticCheck:
     try:
+        from sqlalchemy import text
+
         with SessionLocal() as db:
             db.execute(text("SELECT 1"))
-        database_ready = True
-    except Exception:
-        database_ready = False
+        return DiagnosticCheck(name="database", ok=True, detail="SQLite database is reachable")
+    except Exception as exc:
+        return DiagnosticCheck(name="database", ok=False, detail=f"Database check failed: {exc}")
 
-    return SystemStatus(
-        mode="demo" if settings.demo_mode else "live",
-        ai_ready=Path(settings.model_path).exists(),
-        database_ready=database_ready,
-        video_ready=has_readable_video,
+
+def _video_directory_check() -> DiagnosticCheck:
+    try:
+        VIDEO_ROOT.mkdir(parents=True, exist_ok=True)
+        readable = 0
+        for path in VIDEO_ROOT.iterdir():
+            if path.is_file() and path.suffix.lower() in ALLOWED_SUFFIXES:
+                if inspect_video(str(path))["readable"]:
+                    readable += 1
+        return DiagnosticCheck(
+            name="video_directory",
+            ok=True,
+            detail=f"Video directory ready; {readable} readable local video(s)",
+        )
+    except Exception as exc:
+        return DiagnosticCheck(name="video_directory", ok=False, detail=f"Video check failed: {exc}")
+
+
+def _model_check() -> DiagnosticCheck:
+    path = Path(settings.model_path)
+    return DiagnosticCheck(
+        name="local_model",
+        ok=path.exists(),
+        detail=f"Configured model: {settings.model_name}" if path.exists() else "Local YOLO model is not installed; simulation mode remains available",
     )
+
+
+def diagnostics() -> SystemDiagnostics:
+    checks = [_database_check(), _video_directory_check(), _model_check()]
+    return SystemDiagnostics(
+        healthy=all(check.ok for check in checks),
+        checks=checks,
+    )
+
+
+@router.get("/diagnostics", response_model=SystemDiagnostics)
+def system_diagnostics():
+    return diagnostics()
+
+
+@router.get("/status")
+def status():
+    check = diagnostics()
+    video_ready = next((item.ok for item in check.checks if item.name == "video_directory"), False)
+    database_ready = next((item.ok for item in check.checks if item.name == "database"), False)
+    return {
+        "mode": "demo" if settings.demo_mode else "live",
+        "ai_ready": Path(settings.model_path).exists(),
+        "database_ready": database_ready,
+        "video_ready": video_ready,
+    }
