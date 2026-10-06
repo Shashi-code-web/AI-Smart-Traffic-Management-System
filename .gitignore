@@ -8,3 +8,11 @@ __pycache__/
 .pytest_cache/
 .env
 .DS_Store
+
+# Project binary demo assets
+models/yolo/*.pt
+models/yolo/*.onnx
+data/videos/*
+!data/videos/.gitkeep
+data/records/*
+!data/records/.gitkeep
