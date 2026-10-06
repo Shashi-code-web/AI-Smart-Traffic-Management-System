@@ -42,6 +42,11 @@ def test_phase4_completed_ai_session_keeps_final_snapshot():
         green_seconds=19,
         model_ready=True,
         signal_reason="test",
+        emergency_detected=False,
+        emergency_type=None,
+        emergency_direction=None,
+        emergency_confidence=0.0,
+        priority_active=False,
         processed_at=datetime.now(timezone.utc).isoformat(),
     )
     runtime._mode = "AI_VIDEO"
