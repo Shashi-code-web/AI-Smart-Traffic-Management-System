@@ -10,7 +10,7 @@ from .api.video import router as video_router
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title=settings.app_name, version="0.4.0")
+app = FastAPI(title=settings.app_name, version="0.5.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[x.strip() for x in settings.cors_origins.split(",") if x.strip()],
@@ -26,4 +26,4 @@ app.include_router(video_router)
 
 @app.get("/")
 def root():
-    return {"name": settings.app_name, "status": "running", "phase": 4}
+    return {"name": settings.app_name, "status": "running", "phase": 5}
