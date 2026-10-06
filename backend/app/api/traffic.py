@@ -8,19 +8,39 @@ router = APIRouter(prefix="/api/traffic", tags=["traffic"])
 _demo = DemoTrafficSource()
 
 
-def _from_live(pipeline):
+def _lane_signal(direction: str, active_direction: str, signal_state: str) -> str:
+    if signal_state == "ALL_RED":
+        return "RED"
+    if direction != active_direction:
+        return "RED"
+    return signal_state
+
+
+def _from_live(pipeline) -> TrafficSnapshot:
     return TrafficSnapshot(
         total_vehicles=pipeline.current_vehicle_count,
         vehicle_type_counts=pipeline.vehicle_type_counts,
         active_direction=pipeline.active_direction,
-        remaining_seconds=pipeline.green_seconds,
+        next_direction=pipeline.next_direction,
+        signal_state=pipeline.signal_state,
+        remaining_seconds=pipeline.remaining_seconds,
+        green_seconds=pipeline.green_seconds,
+        signal_reason=pipeline.signal_reason,
         lanes=[
             LaneTraffic(
                 direction=direction,
                 vehicle_count=count,
                 density=pipeline.lane_densities[direction],
-                signal="GREEN" if direction == pipeline.active_direction else "RED",
-                remaining_seconds=pipeline.green_seconds if direction == pipeline.active_direction else 24,
+                signal=_lane_signal(
+                    direction,
+                    pipeline.active_direction,
+                    pipeline.signal_state,
+                ),
+                remaining_seconds=(
+                    pipeline.remaining_seconds
+                    if direction == pipeline.active_direction
+                    else 0
+                ),
             )
             for direction, count in pipeline.lane_counts.items()
         ],
@@ -35,20 +55,31 @@ def snapshot():
         return _from_live(live)
 
     state = _demo.snapshot()
-    lanes = [
-        LaneTraffic(
-            direction=direction,
-            vehicle_count=count,
-            density=state.densities[direction],
-            signal="GREEN" if direction == state.active_direction else "RED",
-            remaining_seconds=state.green_seconds if direction == state.active_direction else 24,
-        )
-        for direction, count in state.counts.items()
-    ]
     return TrafficSnapshot(
         total_vehicles=sum(state.counts.values()),
         vehicle_type_counts={},
         active_direction=state.active_direction,
-        remaining_seconds=state.green_seconds,
-        lanes=lanes,
+        next_direction=state.next_direction,
+        signal_state=state.signal_state,
+        remaining_seconds=state.remaining_seconds,
+        green_seconds=state.green_seconds,
+        signal_reason=state.signal_reason,
+        lanes=[
+            LaneTraffic(
+                direction=direction,
+                vehicle_count=count,
+                density=state.densities[direction],
+                signal=_lane_signal(
+                    direction,
+                    state.active_direction,
+                    state.signal_state,
+                ),
+                remaining_seconds=(
+                    state.remaining_seconds
+                    if direction == state.active_direction
+                    else 0
+                ),
+            )
+            for direction, count in state.counts.items()
+        ],
     )
