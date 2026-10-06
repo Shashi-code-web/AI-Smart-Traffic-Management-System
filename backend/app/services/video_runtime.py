@@ -150,6 +150,7 @@ class VideoRuntime:
                     mode = self._mode
 
                 if pipeline is not None:
+                    frame = self._resize_for_inference(frame)
                     pipeline.process_frame(frame)
                     annotated = self._annotate(frame, pipeline)
                 else:
@@ -201,6 +202,17 @@ class VideoRuntime:
                 self._running = False
                 if self._mode != "ERROR":
                     self._mode = "IDLE"
+
+    @staticmethod
+    def _resize_for_inference(frame):
+        max_width = max(320, settings.max_inference_width)
+        height, width = frame.shape[:2]
+        if width <= max_width:
+            return frame
+
+        scale = max_width / width
+        new_size = (max_width, max(1, int(round(height * scale))))
+        return cv2.resize(frame, new_size, interpolation=cv2.INTER_AREA)
 
     def _annotate(self, frame, pipeline: TrafficPipeline):
         annotated = frame.copy()
