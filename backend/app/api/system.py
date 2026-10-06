@@ -63,9 +63,12 @@ def system_diagnostics():
 
 @router.get("/status", response_model=SystemStatus)
 def status():
-    check = diagnostics()
-    video_ready = next((item.ok for item in check.checks if item.name == "video_directory"), False)
-    database_ready = next((item.ok for item in check.checks if item.name == "database"), False)
+    VIDEO_ROOT.mkdir(parents=True, exist_ok=True)
+    video_ready = any(
+        path.is_file() and path.suffix.lower() in ALLOWED_SUFFIXES
+        for path in VIDEO_ROOT.iterdir()
+    )
+    database_ready = _database_check().ok
     return SystemStatus(
         mode="demo" if settings.demo_mode else "live",
         ai_ready=Path(settings.model_path).exists(),
