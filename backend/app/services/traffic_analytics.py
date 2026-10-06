@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import json
-import math
 import threading
 
 from sqlalchemy import desc
+from sqlalchemy.exc import SQLAlchemyError
 
 from ..config import settings
 from ..database.session import SessionLocal
@@ -56,10 +56,13 @@ class TrafficAnalyticsService:
             green_seconds=snapshot.green_seconds,
             vehicle_type_counts=json.dumps(snapshot.vehicle_type_counts, sort_keys=True),
         )
-        with SessionLocal() as db:
-            db.add(record)
-            db.commit()
-        return True
+        try:
+            with SessionLocal() as db:
+                db.add(record)
+                db.commit()
+            return True
+        except SQLAlchemyError:
+            return False
 
     def history(self, limit: int | None = None) -> list[TrafficRecord]:
         safe_limit = max(1, min(limit or settings.analytics_history_limit, 2000))
