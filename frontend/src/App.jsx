@@ -62,16 +62,16 @@ export default function App() {
   const [checking, setChecking] = useState(true);
   const [streamKey, setStreamKey] = useState(Date.now());
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (includeSources = false) => {
     try {
-      const [system, healthState, snapshot, session, localSources, diagnosticsState] = await Promise.all([
+      const [system, healthState, snapshot, session] = await Promise.all([
         getSystemStatus(),
         getHealth(),
         getTrafficSnapshot(),
         getVideoSession(),
-        getVideoSources(),
-        getSystemDiagnostics(),
       ]);
+      const localSources = includeSources ? await getVideoSources() : sources;
+      const diagnosticsState = view === 'settings' ? await getSystemDiagnostics() : diagnostics;
 
       if (view === 'analytics') {
         const [summaryState, historyState, predictionState] = await Promise.all([
@@ -88,8 +88,8 @@ export default function App() {
       setHealth(healthState);
       setTraffic(snapshot);
       setVideo(session);
-      setSources(localSources);
-      setDiagnostics(diagnosticsState);
+      if (includeSources) setSources(localSources);
+      if (view === 'settings') setDiagnostics(diagnosticsState);
       setError('');
       setChecking(false);
 
@@ -103,11 +103,11 @@ export default function App() {
       setChecking(false);
       setError(err.message);
     }
-  }, [selectedSource, view]);
+  }, [selectedSource, view, sources, diagnostics]);
 
   useEffect(() => {
-    load();
-    const timer = window.setInterval(load, 1500);
+    load(true);
+    const timer = window.setInterval(() => load(false), 1500);
     return () => window.clearInterval(timer);
   }, [load]);
 
@@ -131,7 +131,7 @@ export default function App() {
     try {
       await startVideo(selectedSource, aiMode);
       setStreamKey(Date.now());
-      await load();
+      await load(false);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -143,7 +143,7 @@ export default function App() {
     setBusy(true);
     try {
       await stopVideo();
-      await load();
+      await load(true);
     } catch (err) {
       setError(err.message);
     } finally {
