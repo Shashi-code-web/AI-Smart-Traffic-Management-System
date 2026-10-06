@@ -70,8 +70,10 @@ export default function App() {
         getTrafficSnapshot(),
         getVideoSession(),
       ]);
-      const localSources = includeSources ? await getVideoSources() : sources;
-      const diagnosticsState = includeSources && view === 'settings' ? await getSystemDiagnostics() : diagnostics;
+      const localSources = includeSources ? await getVideoSources() : [];
+      const diagnosticsState = includeSources && view === 'settings'
+        ? await getSystemDiagnostics()
+        : null;
 
       if (view === 'analytics') {
         const [summaryState, historyState, predictionState] = await Promise.all([
@@ -89,7 +91,7 @@ export default function App() {
       setTraffic(snapshot);
       setVideo(session);
       if (includeSources) setSources(localSources);
-      if (view === 'settings') setDiagnostics(diagnosticsState);
+      if (includeSources && view === 'settings') setDiagnostics(diagnosticsState);
       setError('');
       setChecking(false);
 
@@ -103,7 +105,7 @@ export default function App() {
       setChecking(false);
       setError(err.message);
     }
-  }, [selectedSource, view, sources, diagnostics]);
+  }, [selectedSource, view]);
 
   useEffect(() => {
     load(true);
