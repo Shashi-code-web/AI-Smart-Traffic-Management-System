@@ -211,7 +211,84 @@ export default function App() {
 
         {error && <div className="error-banner">{error}</div>}
 
-        {view === 'analytics' ? (
+        {view === 'emergency' ? (
+          <section className="analytics-layout">
+            <div className="metrics">
+              <Metric
+                icon={ShieldAlert}
+                label="Emergency status"
+                value={traffic?.emergency_detected ? 'DETECTED' : 'CLEAR'}
+                note={traffic?.emergency_detected ? 'Local YOLO emergency class' : 'No emergency detected'}
+              />
+              <Metric
+                icon={Car}
+                label="Emergency type"
+                value={traffic?.emergency_type?.replaceAll('_', ' ') || '—'}
+                note={traffic?.emergency_confidence
+                  ? Math.round(traffic.emergency_confidence * 100) + '% confidence'
+                  : 'Waiting for detection'}
+              />
+              <Metric
+                icon={Signal}
+                label="Priority direction"
+                value={titleCase(traffic?.emergency_direction || '—')}
+                note={traffic?.priority_active ? 'Signal preemption active' : 'No priority request'}
+              />
+              <Metric
+                icon={Radio}
+                label="Signal state"
+                value={traffic?.signal_state || 'GREEN'}
+                note={traffic?.signal_reason || 'Normal adaptive control'}
+              />
+            </div>
+
+            <div className="grid-main">
+              <div className="card analytics-card">
+                <div className="section-head">
+                  <div>
+                    <h2>Emergency Priority</h2>
+                    <p>Safe preemption through the Phase 5 signal controller</p>
+                  </div>
+                  <span className="live-tag">
+                    <span className="dot" /> {traffic?.priority_active ? 'PRIORITY ACTIVE' : 'STANDBY'}
+                  </span>
+                </div>
+                <div className="emergency-banner-panel">
+                  <ShieldAlert size={36} />
+                  <div>
+                    <strong>
+                      {traffic?.emergency_detected
+                        ? titleCase(traffic.emergency_type || 'emergency vehicle') + ' detected'
+                        : 'No emergency vehicle detected'}
+                    </strong>
+                    <span>
+                      {traffic?.emergency_detected
+                        ? 'Direction: ' + titleCase(traffic.emergency_direction || 'unmapped') + '. The controller uses yellow and all-red clearance before priority green.'
+                        : 'Emergency recognition requires a local YOLO model trained with supported ambulance, fire-truck, police, or emergency-vehicle classes.'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card analytics-card">
+                <div className="section-head">
+                  <div>
+                    <h2>Supported emergency classes</h2>
+                    <p>Detected from local YOLO class labels</p>
+                  </div>
+                </div>
+                <div className="lane-average-grid">
+                  {['AMBULANCE', 'FIRE TRUCK', 'POLICE', 'EMERGENCY VEHICLE'].map((label) => (
+                    <div className="lane-average" key={label}>
+                      <span>{label}</span>
+                      <strong>READY</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : view === 'analytics' ? (
           <section className="analytics-layout">
             <div className="metrics">
               <Metric
