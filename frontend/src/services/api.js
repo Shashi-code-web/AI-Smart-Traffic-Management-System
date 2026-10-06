@@ -75,3 +75,7 @@ export async function getAnalyticsHistory(limit = 20) {
 export async function getAnalyticsPrediction(horizon = 5, limit = 100) {
   return getJson('/api/analytics/predict?horizon=' + horizon + '&limit=' + limit);
 }
+
+export async function getSystemDiagnostics() {
+  return getJson('/api/system/diagnostics');
+}
