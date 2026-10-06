@@ -7,7 +7,7 @@ An offline-first B.Tech minor project for intelligent traffic monitoring and ada
 - **Frontend:** React + Vite
 - **Backend:** FastAPI
 - **AI:** Local Ultralytics YOLO vehicle detection + ByteTrack tracking
-- **Traffic intelligence:** vehicle counting, lane density classification, adaptive signal timing with GREEN/YELLOW/ALL-RED safety phases
+- **Traffic intelligence:** vehicle counting, lane density classification, adaptive signal timing with GREEN/YELLOW/ALL-RED safety phases, historical analytics, and short-term forecasting
 - **Database:** SQLite for local development; designed to remain usable without a database for demo mode
 - **Presentation mode:** local/offline demo is the primary reliability path
 
@@ -94,14 +94,13 @@ Model weights are intentionally not committed to Git. The runtime uses Ultralyti
 
 ### Remaining phases
 
-- Phase 6: analytics, historical persistence, and prediction
 - Phase 7: emergency vehicle priority
 - Phase 8: reliability, validation, and end-to-end testing
 - Phase 9: final presentation UI/demo hardening
 - Phase 10: documentation, diagrams, PPT, viva preparation, and final verification
 
 
-### Completed through Phase 5
+### Completed through Phase 6
 
 Implemented in the repository:
 - Local traffic video source discovery through `GET /api/video/sources`
@@ -125,3 +124,13 @@ Phase 5 implements:
 - Dashboard visualization of GREEN, YELLOW, and ALL-RED states
 - Deterministic unit tests for transition timing and conflict prevention
 - Dedicated Phase 5 CI workflow
+
+Phase 6 implements:
+- Local SQLite traffic history sampled from the live traffic snapshot endpoint
+- Throttled persistence so dashboard polling does not create excessive database writes
+- Analytics API for history, averages, peaks, busiest lane, and signal-state distribution
+- Offline short-term linear-trend forecasting for the total vehicle count
+- Analytics dashboard with traffic history, lane averages, and five-minute forecast
+- Database readiness reporting through the system-status endpoint
+- Phase 6 regression tests for persistence throttling, analytics calculations, prediction, and API contracts
+- Dedicated Phase 6 CI workflow
