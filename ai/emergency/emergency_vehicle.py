@@ -14,6 +14,7 @@ EMERGENCY_LABELS = {
     "fire engine": "FIRE_TRUCK",
     "fire_engine": "FIRE_TRUCK",
     "police": "POLICE",
+    "police car": "POLICE",
     "policecar": "POLICE",
     "police_car": "POLICE",
     "police vehicle": "POLICE",
