@@ -63,3 +63,15 @@ export async function startVideo(path, useAi = true) {
 export async function stopVideo() {
   return getJson('/api/video/stop', { method: 'POST' });
 }
+
+export async function getAnalyticsSummary(limit = 100) {
+  return getJson('/api/analytics/summary?limit=' + limit);
+}
+
+export async function getAnalyticsHistory(limit = 20) {
+  return getJson('/api/analytics/history?limit=' + limit);
+}
+
+export async function getAnalyticsPrediction(horizon = 5, limit = 100) {
+  return getJson('/api/analytics/predict?horizon=' + horizon + '&limit=' + limit);
+}
