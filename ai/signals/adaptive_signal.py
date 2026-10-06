@@ -19,6 +19,7 @@ class SignalConfig:
     max_green: int = 60
     yellow: int = 3
     all_red: int = 1
+    emergency_green: int = 20
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,7 @@ class SignalSnapshot:
     green_seconds: int
     yellow_seconds: int
     all_red_seconds: int
+    priority_direction: str | None
     reason: str
 
 
@@ -52,6 +54,7 @@ class AdaptiveSignalController:
         self._next_direction = self.DIRECTIONS[0]
         self._phase_started_at: float | None = None
         self._green_seconds = self._clamp_green(self.config.min_green)
+        self._priority_direction: str | None = None
         self._reason = "startup"
 
     def _validate_config(self) -> None:
@@ -63,6 +66,8 @@ class AdaptiveSignalController:
             raise ValueError("yellow must be at least 1 second")
         if self.config.all_red < 1:
             raise ValueError("all_red must be at least 1 second")
+        if self.config.emergency_green < self.config.min_green:
+            raise ValueError("emergency_green must be greater than or equal to min_green")
 
     def _clamp_green(self, seconds: int) -> int:
         return max(self.config.min_green, min(self.config.max_green, int(seconds)))
@@ -92,6 +97,15 @@ class AdaptiveSignalController:
         )
 
     def _select_next_direction(self, densities: dict[str, int]) -> SignalDecision:
+        if self._priority_direction and self._priority_direction != self._direction:
+            direction = self._priority_direction
+            peak = max(0, densities.get(direction, 0))
+            return SignalDecision(
+                direction=direction,
+                green_seconds=self._clamp_green(self.config.emergency_green),
+                reason=f"emergency priority requested for {direction}",
+            )
+
         decision = self.decide(densities)
         alternatives = {
             direction: max(0, densities.get(direction, 0))
@@ -120,6 +134,15 @@ class AdaptiveSignalController:
             reason="round-robin fallback",
         )
 
+    def request_priority(self, direction: str) -> None:
+        self._validate_config()
+        if direction not in self.DIRECTIONS:
+            raise ValueError(f"Unknown priority direction: {direction}")
+        self._priority_direction = direction
+
+    def clear_priority(self) -> None:
+        self._priority_direction = None
+
     def reset(self, direction: str = "NORTH", now: float | None = None) -> SignalSnapshot:
         self._validate_config()
         if direction not in self.DIRECTIONS:
@@ -128,6 +151,7 @@ class AdaptiveSignalController:
         self._next_direction = direction
         self._state = SignalState.GREEN
         self._green_seconds = self.config.min_green
+        self._priority_direction = None
         self._reason = "reset"
         self._phase_started_at = time.monotonic() if now is None else now
         return self.snapshot(now)
@@ -136,9 +160,14 @@ class AdaptiveSignalController:
         self,
         densities: dict[str, int],
         now: float | None = None,
+        priority_direction: str | None = None,
     ) -> SignalSnapshot:
         """Advance the safety state machine using the latest lane demand."""
         self._validate_config()
+        if priority_direction is not None:
+            self.request_priority(priority_direction)
+        else:
+            self.clear_priority()
         current_time = time.monotonic() if now is None else now
         if self._phase_started_at is None:
             self._phase_started_at = current_time
@@ -149,7 +178,13 @@ class AdaptiveSignalController:
         while transitions < safety_limit:
             duration = self._phase_duration()
             elapsed = max(0.0, current_time - self._phase_started_at)
-            if elapsed < duration:
+            priority_cutover = (
+                self._state is SignalState.GREEN
+                and self._priority_direction is not None
+                and self._priority_direction != self._direction
+                and elapsed >= self.config.min_green
+            )
+            if elapsed < duration and not priority_cutover:
                 break
 
             self._phase_started_at += duration
@@ -179,10 +214,14 @@ class AdaptiveSignalController:
             return
 
         self._direction = self._next_direction
-        decision = self.decide({self._direction: densities.get(self._direction, 0)})
-        self._green_seconds = decision.green_seconds
+        if self._priority_direction == self._direction:
+            self._green_seconds = self._clamp_green(self.config.emergency_green)
+            self._reason = f"emergency priority active for {self._direction}"
+        else:
+            decision = self.decide({self._direction: densities.get(self._direction, 0)})
+            self._green_seconds = decision.green_seconds
+            self._reason = decision.reason
         self._state = SignalState.GREEN
-        self._reason = decision.reason
 
     def snapshot(self, now: float | None = None) -> SignalSnapshot:
         current_time = time.monotonic() if now is None else now
@@ -201,5 +240,6 @@ class AdaptiveSignalController:
             green_seconds=self._green_seconds,
             yellow_seconds=self.config.yellow,
             all_red_seconds=self.config.all_red,
+            priority_direction=self._priority_direction,
             reason=self._reason,
         )
