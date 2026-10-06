@@ -21,6 +21,6 @@ class TrafficSnapshot(BaseModel):
     emergency_detected: bool = False
     emergency_type: str | None = None
     emergency_direction: str | None = None
-    emergency_confidence: float = Field(ge=0, le=1)
+    emergency_confidence: float = Field(default=0.0, ge=0, le=1)
     priority_active: bool = False
     lanes: list[LaneTraffic]
