@@ -201,8 +201,7 @@ export default function App() {
           <div className="card info-panel">
             <strong>{titleCase(view)} module</strong>
             <span>
-              This Phase 4 dashboard keeps the module visible and connected to the
-              live backend. Advanced {view} intelligence is implemented in its later project phase.
+              This dashboard is connected to the live backend. Advanced {view} intelligence is implemented in its later project phase.
             </span>
           </div>
         )}
@@ -210,7 +209,14 @@ export default function App() {
         <section className="metrics">
           <Metric icon={Car} label="Vehicles detected" value={traffic?.total_vehicles ?? '—'} note={video?.running ? 'Live AI snapshot' : 'Current traffic snapshot'} />
           <Metric icon={Gauge} label="Traffic density" value={overallDensity} note="Highest lane demand" />
-          <Metric icon={Signal} label="Active signal" value={titleCase(activeDirection)} note={'Green · ' + (traffic?.remaining_seconds ?? '—') + ' sec'} />
+          <Metric
+            icon={Signal}
+            label="Signal phase"
+            value={traffic?.signal_state || 'GREEN'}
+            note={traffic?.signal_state === 'ALL_RED'
+              ? 'Safety clearance'
+              : `${titleCase(activeDirection)} · ${traffic?.remaining_seconds ?? '—'} sec`}
+/>
           <Metric icon={Radio} label="System mode" value={aiMode ? 'AI' : 'DEMO'} note={aiMode ? 'Local YOLO available' : 'Offline simulation'} />
         </section>
 
@@ -295,19 +301,25 @@ export default function App() {
             <div className="section-head">
               <div>
                 <h2>Signal Controller</h2>
-                <p>Phase 4 live display · safety logic remains Phase 5</p>
+                <p>Phase 5 adaptive safety state machine</p>
               </div>
             </div>
             <div className="signal-lights">
-              <div className="light red" />
-              <div className="light yellow" />
-              <div className="light green active" />
+              <div className={'light red ' + (traffic?.signal_state === 'RED' || traffic?.signal_state === 'ALL_RED' ? 'active' : '')} />
+              <div className={'light yellow ' + (traffic?.signal_state === 'YELLOW' ? 'active' : '')} />
+              <div className={'light green ' + (traffic?.signal_state === 'GREEN' ? 'active' : '')} />
             </div>
             <div className="signal-current">
-              <span>{titleCase(activeDirection)} / Green</span>
+              <span>
+                {traffic?.signal_state === 'ALL_RED'
+                  ? 'All directions / Safety clearance'
+                  : titleCase(activeDirection) + ' / ' + (traffic?.signal_state || 'GREEN')}
+              </span>
               <strong>{traffic?.remaining_seconds ?? '—'}s</strong>
             </div>
-            <div className="safe-note">Live state from traffic backend</div>
+            <div className="safe-note">
+              Next: {titleCase(traffic?.next_direction || activeDirection)}
+            </div>
           </div>
         </section>
 
