@@ -1,12 +1,37 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
-from ..schemas.video import VideoSession, VideoStartRequest, VideoStatus
+from ..schemas.video import VideoSession, VideoSource, VideoStartRequest, VideoStatus
 from ..services.video_runtime import video_runtime
-from ..services.video_validator import inspect_video
+from ..services.video_validator import ALLOWED_SUFFIXES, VIDEO_ROOT, inspect_video
 
 router = APIRouter(prefix="/api/video", tags=["video"])
 
+
+
+@router.get("/sources", response_model=list[VideoSource])
+def video_sources():
+    sources: list[VideoSource] = []
+    VIDEO_ROOT.mkdir(parents=True, exist_ok=True)
+    for path in sorted(VIDEO_ROOT.iterdir()):
+        if not path.is_file() or path.suffix.lower() not in ALLOWED_SUFFIXES:
+            continue
+        info = inspect_video(str(path))
+        sources.append(
+            VideoSource(
+                path=info["path"],
+                name=path.name,
+                exists=info["exists"],
+                readable=info["readable"],
+                fps=info["fps"],
+                frame_count=info["frame_count"],
+                width=info["width"],
+                height=info["height"],
+                duration_seconds=info["duration_seconds"],
+                error=info["error"],
+            )
+        )
+    return sources
 
 @router.get("/status", response_model=VideoStatus)
 def video_status(path: str | None = None):
