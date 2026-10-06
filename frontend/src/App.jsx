@@ -246,7 +246,7 @@ export default function App() {
                 <strong>{sources.length ? 'Select a traffic video' : 'Add a local traffic video'}</strong>
                 <span>
                   Videos must be stored under <code>data/videos/</code>.
-                  Phase 4 can use any readable MP4/AVI/MOV/MKV/M4V file.
+                  Phase 5 can use any readable MP4/AVI/MOV/MKV/M4V file.
                 </span>
               </div>
             )}
