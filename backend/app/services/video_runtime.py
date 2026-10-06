@@ -166,7 +166,7 @@ class VideoRuntime:
                     snapshot = pipeline.snapshot
                     cv2.putText(
                         annotated,
-                        f"Signal: {snapshot.active_direction} | Green: {snapshot.green_seconds}s",
+                        f"Signal: {snapshot.active_direction} | {snapshot.signal_state}: {snapshot.remaining_seconds}s",
                         (18, 62),
                         cv2.FONT_HERSHEY_SIMPLEX,
                         0.62,
