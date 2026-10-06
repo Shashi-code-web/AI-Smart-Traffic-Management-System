@@ -38,6 +38,7 @@ class VideoRuntime:
         self._frames = 0
         self._started_at: str | None = None
         self._latest_jpeg: bytes | None = None
+        self._latest_snapshot: PipelineSnapshot | None = None
         self._pipeline: TrafficPipeline | None = None
         self._demo = DemoTrafficSource()
 
@@ -54,6 +55,8 @@ class VideoRuntime:
 
     def snapshot(self) -> PipelineSnapshot | None:
         with self._lock:
+            if self._latest_snapshot is not None:
+                return self._latest_snapshot
             pipeline = self._pipeline
         return pipeline.snapshot if pipeline else None
 
@@ -101,6 +104,7 @@ class VideoRuntime:
             self._frames = 0
             self._started_at = datetime.now(timezone.utc).isoformat()
             self._latest_jpeg = None
+            self._latest_snapshot = None
             self._pipeline = pipeline
             self._thread = threading.Thread(
                 target=self._worker,
@@ -151,7 +155,9 @@ class VideoRuntime:
 
                 if pipeline is not None:
                     frame = self._resize_for_inference(frame)
-                    pipeline.process_frame(frame)
+                    snapshot = pipeline.process_frame(frame)
+                    with self._lock:
+                        self._latest_snapshot = snapshot
                     annotated = self._annotate(frame, pipeline)
                 else:
                     annotated = frame
