@@ -281,7 +281,7 @@ export default function App() {
                   {['AMBULANCE', 'FIRE TRUCK', 'POLICE', 'EMERGENCY VEHICLE'].map((label) => (
                     <div className="lane-average" key={label}>
                       <span>{label}</span>
-                      <strong>READY</strong>
+                      <strong>SUPPORTED</strong>
                     </div>
                   ))}
                 </div>
@@ -439,7 +439,7 @@ export default function App() {
                 <strong>{sources.length ? 'Select a traffic video' : 'Add a local traffic video'}</strong>
                 <span>
                   Videos must be stored under <code>data/videos/</code>.
-                  Phase 5 can use any readable MP4/AVI/MOV/MKV/M4V file.
+                  Phase 7 can use any readable MP4/AVI/MOV/MKV/M4V file.
                 </span>
               </div>
             )}
@@ -494,7 +494,7 @@ export default function App() {
             <div className="section-head">
               <div>
                 <h2>Signal Controller</h2>
-                <p>Phase 5 adaptive safety state machine</p>
+                <p>Phase 5 safety state machine + Phase 7 emergency priority</p>
               </div>
             </div>
             <div className="signal-lights">
