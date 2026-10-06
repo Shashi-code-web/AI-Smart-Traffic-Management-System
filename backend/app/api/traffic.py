@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from ..schemas.traffic import LaneTraffic, TrafficSnapshot
 from ..services.demo_traffic import DemoTrafficSource
+from ..services.traffic_analytics import traffic_analytics
 from ..services.video_runtime import video_runtime
 
 router = APIRouter(prefix="/api/traffic", tags=["traffic"])
@@ -52,34 +53,37 @@ def snapshot():
     session = video_runtime.status()
     live = video_runtime.snapshot()
     if session.mode == "AI_VIDEO" and live is not None:
-        return _from_live(live)
+        result = _from_live(live)
+    else:
+        state = _demo.snapshot()
+        result = TrafficSnapshot(
+            total_vehicles=sum(state.counts.values()),
+            vehicle_type_counts={},
+            active_direction=state.active_direction,
+            next_direction=state.next_direction,
+            signal_state=state.signal_state,
+            remaining_seconds=state.remaining_seconds,
+            green_seconds=state.green_seconds,
+            signal_reason=state.signal_reason,
+            lanes=[
+                LaneTraffic(
+                    direction=direction,
+                    vehicle_count=count,
+                    density=state.densities[direction],
+                    signal=_lane_signal(
+                        direction,
+                        state.active_direction,
+                        state.signal_state,
+                    ),
+                    remaining_seconds=(
+                        state.remaining_seconds
+                        if direction == state.active_direction
+                        else 0
+                    ),
+                )
+                for direction, count in state.counts.items()
+            ],
+        )
 
-    state = _demo.snapshot()
-    return TrafficSnapshot(
-        total_vehicles=sum(state.counts.values()),
-        vehicle_type_counts={},
-        active_direction=state.active_direction,
-        next_direction=state.next_direction,
-        signal_state=state.signal_state,
-        remaining_seconds=state.remaining_seconds,
-        green_seconds=state.green_seconds,
-        signal_reason=state.signal_reason,
-        lanes=[
-            LaneTraffic(
-                direction=direction,
-                vehicle_count=count,
-                density=state.densities[direction],
-                signal=_lane_signal(
-                    direction,
-                    state.active_direction,
-                    state.signal_state,
-                ),
-                remaining_seconds=(
-                    state.remaining_seconds
-                    if direction == state.active_direction
-                    else 0
-                ),
-            )
-            for direction, count in state.counts.items()
-        ],
-    )
+    traffic_analytics.record_snapshot(result)
+    return result
