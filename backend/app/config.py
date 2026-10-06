@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     yellow_seconds: int = 3
     all_red_seconds: int = 1
     demo_video_path: str = "data/videos/demo.mp4"
+    analytics_sample_seconds: int = 5
+    analytics_history_limit: int = 500
+    prediction_horizon_minutes: int = 5
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
