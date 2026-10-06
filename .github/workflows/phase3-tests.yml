@@ -22,9 +22,11 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
 
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Run Phase 3 tests
-        working-directory: .
-        run: pytest -q
+        working-directory: ${{ github.workspace }}
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: pytest -q tests backend/tests
