@@ -187,7 +187,10 @@ class AdaptiveSignalController:
             if elapsed < duration and not priority_cutover:
                 break
 
-            self._phase_started_at += duration
+            if priority_cutover:
+                self._phase_started_at = current_time
+            else:
+                self._phase_started_at += duration
             self._advance_phase(densities)
             transitions += 1
 
