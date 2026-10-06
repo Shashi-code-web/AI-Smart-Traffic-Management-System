@@ -6,4 +6,4 @@ router = APIRouter(tags=["system"])
 
 @router.get("/health", response_model=HealthResponse)
 def health():
-    return HealthResponse(status="ok", service="traffic-backend", version="0.7.0")
+    return HealthResponse(status="ok", service="traffic-backend", version="1.0.0")
