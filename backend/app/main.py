@@ -12,7 +12,7 @@ from .api.analytics import router as analytics_router
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title=settings.app_name, version="0.7.0")
+app = FastAPI(title=settings.app_name, version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[x.strip() for x in settings.cors_origins.split(",") if x.strip()],
@@ -29,4 +29,4 @@ app.include_router(analytics_router)
 
 @app.get("/")
 def root():
-    return {"name": settings.app_name, "status": "running", "phase": 7}
+    return {"name": settings.app_name, "status": "running", "phase": 10}
