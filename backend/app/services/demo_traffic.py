@@ -10,12 +10,16 @@ class DemoTrafficSnapshot:
     counts: dict[str, int]
     densities: dict[str, str]
     active_direction: str
+    next_direction: str
+    signal_state: str
+    remaining_seconds: int
     green_seconds: int
     cycle_index: int
+    signal_reason: str
 
 
 class DemoTrafficSource:
-    """Deterministic offline traffic simulation for presentations when AI/video input is unavailable."""
+    """Deterministic offline traffic simulation using the same Phase 5 signal safety engine."""
 
     PATTERNS = (
         {"NORTH": 34, "EAST": 12, "SOUTH": 8, "WEST": 15},
@@ -37,11 +41,15 @@ class DemoTrafficSource:
             lane: self.estimator.classify(count).value
             for lane, count in counts.items()
         }
-        decision = self.controller.decide(counts)
+        signal = self.controller.update(counts, now=now)
         return DemoTrafficSnapshot(
             counts=counts,
             densities=densities,
-            active_direction=decision.direction,
-            green_seconds=decision.green_seconds,
+            active_direction=signal.direction,
+            next_direction=signal.next_direction,
+            signal_state=signal.state.value,
+            remaining_seconds=signal.remaining_seconds,
+            green_seconds=signal.green_seconds,
             cycle_index=cycle_index,
+            signal_reason=signal.reason,
         )
