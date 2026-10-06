@@ -1,0 +1,21 @@
+flowchart LR
+    A[Traffic Video / Camera] --> B[Local YOLO Detection]
+    B --> C[ByteTrack IDs]
+    C --> D[Vehicle Counter]
+    D --> E[Lane Mapping N/E/S/W]
+    E --> F[Density Estimator]
+    F --> G[Adaptive Signal Controller]
+    B --> H[Emergency Vehicle Detector]
+    H --> G
+    G --> I[FastAPI Traffic API]
+    I --> J[React Dashboard]
+    I --> K[SQLite Traffic History]
+    K --> L[Analytics + Forecast]
+    L --> J
+
+    G --> M[GREEN]
+    G --> N[YELLOW]
+    G --> O[ALL-RED]
+    M --> N
+    N --> O
+    O --> M
