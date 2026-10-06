@@ -8,7 +8,7 @@ An offline-first B.Tech minor project for intelligent traffic monitoring and ada
 - **Backend:** FastAPI
 - **AI:** Local Ultralytics YOLO vehicle detection + ByteTrack tracking
 - **Traffic intelligence:** vehicle counting, lane density classification, adaptive signal timing with GREEN/YELLOW/ALL-RED safety phases, historical analytics, short-term forecasting, and emergency-vehicle priority
-- **Database:** SQLite for local development; designed to remain usable without a database for demo mode
+- **Database:** SQLite local persistence with connection hardening and best-effort analytics writes
 - **Presentation mode:** local/offline demo is the primary reliability path
 
 ## Pipeline
@@ -92,15 +92,11 @@ Implemented in the repository:
 
 Model weights are intentionally not committed to Git. The runtime uses Ultralytics YOLO tracking with ByteTrack persistence for consecutive video frames.
 
-### Remaining phases
+### Final release
 
-- Phase 7: emergency vehicle priority
-- Phase 8: reliability, validation, and end-to-end testing
-- Phase 9: final presentation UI/demo hardening
-- Phase 10: documentation, diagrams, PPT, viva preparation, and final verification
+**Version 1.0.0 — Phases 1–10 complete.**
 
-
-### Completed through Phase 7
+### Completed through Phase 10
 
 Implemented in the repository:
 - Local traffic video source discovery through `GET /api/video/sources`
@@ -148,3 +144,42 @@ Phase 7 implements:
 - Dedicated Phase 7 CI workflow
 
 Important: the standard YOLO vehicle model does not inherently recognize ambulance, fire-truck, or police classes. Actual emergency recognition requires a local YOLO model trained with the supported emergency class labels. The software remains offline-first and falls back safely when no emergency class is detected.
+
+
+## Phase 8 — Reliability and validation
+
+- SQLite WAL + connection pre-ping hardening
+- Truthful database/video/model diagnostics at `GET /api/system/diagnostics`
+- Typed system-status contract
+- Path traversal and unsafe video-path validation
+- Invalid signal configuration fail-fast validation
+- Complete backend regression coverage across Phases 3–8
+
+## Phase 9 — UI/UX and offline demo hardening
+
+- Functional Overview, Live Monitor, Analytics, Emergency, and Settings flows
+- System Diagnostics panel
+- 3–5 minute offline presentation workflow
+- One-command Windows/Linux offline demo launchers
+- Dashboard remains usable when the local YOLO weight is unavailable by falling back to simulation mode
+- Responsive controls, analytics panels, emergency panel, and diagnostic status cards
+
+## Phase 10 — Final project package
+
+- Final demo runbook: `docs/demo-runbook.md`
+- Architecture source: `docs/system-architecture.mmd`
+- Viva preparation: `docs/viva-prep.md`
+- Final verification checklist: `docs/final-verification.md`
+- Automated final smoke verification: `scripts/final_verification.py`
+- Dedicated final Phase 8–10 CI workflow
+- Final presentation deck generated with the verified project architecture and workflow
+
+## Final acceptance
+
+The release gate requires:
+1. Complete Python regression suite to pass.
+2. Production React/Vite build to pass.
+3. Final API smoke verification to pass.
+4. Database, video, and model diagnostics to be truthful.
+5. Emergency priority to retain Phase 5 safety transitions.
+6. Offline launchers to remain valid.
