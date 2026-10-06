@@ -36,8 +36,12 @@ def test_phase4_completed_ai_session_keeps_final_snapshot():
         lane_counts={"NORTH": 2, "EAST": 0, "SOUTH": 0, "WEST": 0},
         lane_densities={"NORTH": "LOW", "EAST": "LOW", "SOUTH": "LOW", "WEST": "LOW"},
         active_direction="NORTH",
+        next_direction="NORTH",
+        signal_state="GREEN",
+        remaining_seconds=19,
         green_seconds=19,
         model_ready=True,
+        signal_reason="test",
         processed_at=datetime.now(timezone.utc).isoformat(),
     )
     runtime._mode = "AI_VIDEO"
