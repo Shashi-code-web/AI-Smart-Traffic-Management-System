@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import time
 from typing import Any
 
 from ai.counting.vehicle_counter import VehicleCounter
@@ -46,7 +47,7 @@ class TrafficPipeline:
 
     def _empty_snapshot(self) -> PipelineSnapshot:
         counts = {lane.value: 0 for lane in Lane}
-        signal = self.signal.reset(direction=Lane.NORTH.value, now=0.0)
+        signal = self.signal.reset(direction=Lane.NORTH.value, now=time.monotonic())
         return PipelineSnapshot(
             total_tracked=0,
             current_vehicle_count=0,
