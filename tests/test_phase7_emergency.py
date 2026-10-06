@@ -102,3 +102,28 @@ def test_phase7_emergency_priority_uses_safe_clearance_sequence():
     assert priority_green.direction == "EAST"
     assert priority_green.priority_direction == "EAST"
     assert priority_green.green_seconds == 20
+
+    sustained_yellow = controller.update(
+        {"NORTH": 1, "EAST": 1, "SOUTH": 1, "WEST": 1},
+        now=29,
+        priority_direction="EAST",
+    )
+    assert sustained_yellow.state == SignalState.YELLOW
+    assert sustained_yellow.direction == "EAST"
+    assert sustained_yellow.next_direction == "EAST"
+
+    sustained_all_red = controller.update(
+        {"NORTH": 1, "EAST": 1, "SOUTH": 1, "WEST": 1},
+        now=32,
+        priority_direction="EAST",
+    )
+    assert sustained_all_red.state == SignalState.ALL_RED
+
+    sustained_green = controller.update(
+        {"NORTH": 1, "EAST": 1, "SOUTH": 1, "WEST": 1},
+        now=33,
+        priority_direction="EAST",
+    )
+    assert sustained_green.state == SignalState.GREEN
+    assert sustained_green.direction == "EAST"
+    assert sustained_green.green_seconds == 20
