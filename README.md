@@ -101,3 +101,20 @@ Model weights are intentionally not committed to Git. The runtime uses Ultralyti
 - Phase 8: reliability, validation, and end-to-end testing
 - Phase 9: final presentation UI/demo hardening
 - Phase 10: documentation, diagrams, PPT, viva preparation, and final verification
+
+
+### Phase 4 status
+
+Implemented in the repository:
+- Local traffic video source discovery through `GET /api/video/sources`
+- Dashboard source selection for any readable video under `data/videos/`
+- Live backend connectivity indicator and manual refresh control
+- 1.5-second polling for traffic, system, video session, and source state
+- AI/demo mode shown explicitly in the dashboard
+- Live MJPEG stream lifecycle with a fresh session query key
+- Final AI traffic snapshot preserved after a short video reaches EOF
+- Large-video inference resizing before YOLO processing
+- Responsive live-monitor controls and video metadata display
+- Phase 4 regression tests for inference resizing and completed AI session state
+
+Phase 4 intentionally does **not** implement the Phase 5 signal state machine, yellow/all-red transition logic, emergency priority, historical analytics, or prediction.
