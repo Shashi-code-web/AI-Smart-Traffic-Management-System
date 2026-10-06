@@ -94,7 +94,6 @@ Model weights are intentionally not committed to Git. The runtime uses Ultralyti
 
 ### Remaining phases
 
-- Phase 5: signal state machine with yellow/all-red safety phases
 - Phase 6: analytics, historical persistence, and prediction
 - Phase 7: emergency vehicle priority
 - Phase 8: reliability, validation, and end-to-end testing
@@ -102,7 +101,7 @@ Model weights are intentionally not committed to Git. The runtime uses Ultralyti
 - Phase 10: documentation, diagrams, PPT, viva preparation, and final verification
 
 
-### Phase 5 status
+### Completed through Phase 5
 
 Implemented in the repository:
 - Local traffic video source discovery through `GET /api/video/sources`
