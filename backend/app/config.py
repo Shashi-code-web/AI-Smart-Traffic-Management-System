@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     model_name: str = "yolo26n.pt"
     model_confidence: float = 0.35
     target_fps: int = 15
+    max_inference_width: int = 1280
     min_green_seconds: int = 15
     max_green_seconds: int = 60
     yellow_seconds: int = 3
