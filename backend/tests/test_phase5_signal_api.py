@@ -16,6 +16,10 @@ def test_phase5_traffic_snapshot_exposes_safe_signal_state():
     assert payload["green_seconds"] >= 1
     assert payload["active_direction"] in {"NORTH", "EAST", "SOUTH", "WEST"}
     assert payload["next_direction"] in {"NORTH", "EAST", "SOUTH", "WEST"}
+    assert isinstance(payload["emergency_detected"], bool)
+    assert payload["emergency_confidence"] >= 0
+    assert payload["emergency_confidence"] <= 1
+    assert isinstance(payload["priority_active"], bool)
 
     green_lanes = [
         lane for lane in payload["lanes"] if lane["signal"] == "GREEN"
