@@ -200,7 +200,9 @@ class VideoRuntime:
             cap.release()
             with self._lock:
                 self._running = False
-                if self._mode != "ERROR":
+                # Preserve the completed AI mode so the dashboard can continue
+                # displaying the final live snapshot after a short video reaches EOF.
+                if self._mode not in {"AI_VIDEO", "ERROR"}:
                     self._mode = "IDLE"
 
     @staticmethod
