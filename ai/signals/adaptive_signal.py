@@ -97,7 +97,7 @@ class AdaptiveSignalController:
         )
 
     def _select_next_direction(self, densities: dict[str, int]) -> SignalDecision:
-        if self._priority_direction and self._priority_direction != self._direction:
+        if self._priority_direction is not None:
             direction = self._priority_direction
             peak = max(0, densities.get(direction, 0))
             return SignalDecision(
