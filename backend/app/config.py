@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     app_name: str = "AI Smart Traffic Management System"
     environment: str = "development"
     database_url: str = f"sqlite:///{BASE_DIR / 'traffic.db'}"
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     demo_mode: bool = True
     model_path: str = str(BASE_DIR / "models" / "yolo" / "yolo26n.pt")
     model_name: str = "yolo26n.pt"
