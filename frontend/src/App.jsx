@@ -238,7 +238,7 @@ export default function App() {
             <span>This website runs without installation. Counts, signal phases and forecasts are generated demo data, not live CCTV or real YOLO inference. The full AI video pipeline runs in the local laptop version.</span>
           </div>
         </div>}
-        {error && <div className="error-banner" role="alert">{error}</div>
+        {error && <div className="error-banner" role="alert">{error}</div>}
 
         {view === 'settings' ? (
           <section className="analytics-layout">
