@@ -173,13 +173,13 @@ async function getJson(path, options = {}) {
 function browserDemoRequest(path, options = {}) {
   const url = new URL(path, window.location.origin);
   const query = url.searchParams;
-  if (path === '/api/system/status') {
+  if (url.pathname === '/api/system/status') {
     return Promise.resolve({ mode: 'browser-demo', ai_ready: false, database_ready: false, video_ready: true });
   }
   if (path === '/health') {
     return Promise.resolve({ status: 'ok', service: 'browser-traffic-demo', version: '1.0.0' });
   }
-  if (path === '/api/system/diagnostics') {
+  if (url.pathname === '/api/system/diagnostics') {
     return Promise.resolve({
       healthy: true,
       checks: [
@@ -190,8 +190,8 @@ function browserDemoRequest(path, options = {}) {
       ],
     });
   }
-  if (path === '/api/traffic/snapshot') return Promise.resolve(browserTrafficSnapshot());
-  if (path === '/api/video/sources') {
+  if (url.pathname === '/api/traffic/snapshot') return Promise.resolve(browserTrafficSnapshot());
+  if (url.pathname === '/api/video/sources') {
     return Promise.resolve([{
       path: 'browser-simulation',
       name: 'Browser Traffic Simulation',
@@ -205,13 +205,13 @@ function browserDemoRequest(path, options = {}) {
       error: null,
     }]);
   }
-  if (path === '/api/video/session') {
+  if (url.pathname === '/api/video/session') {
     if (browserSession.running && browserSession.started_at) {
       browserSession.frames_processed = Math.floor((Date.now() - new Date(browserSession.started_at).getTime()) / 1000 * 12);
     }
     return Promise.resolve({ ...browserSession });
   }
-  if (path === '/api/video/start' && options.method === 'POST') {
+  if (url.pathname === '/api/video/start' && options.method === 'POST') {
     let body = {};
     try { body = JSON.parse(options.body || '{}'); } catch (_) {}
     browserSession.running = true;
@@ -222,19 +222,19 @@ function browserDemoRequest(path, options = {}) {
     browserSession.started_at = new Date().toISOString();
     return Promise.resolve({ ...browserSession });
   }
-  if (path === '/api/video/stop' && options.method === 'POST') {
+  if (url.pathname === '/api/video/stop' && options.method === 'POST') {
     browserSession.running = false;
     browserSession.mode = 'IDLE';
     browserSession.frames_processed = browserSession.frames_processed || 0;
     return Promise.resolve({ ...browserSession });
   }
-  if (path === '/api/analytics/summary') {
+  if (url.pathname === '/api/analytics/summary') {
     return Promise.resolve(browserSummary(Number(query.get('limit') || 100)));
   }
-  if (path === '/api/analytics/history') {
+  if (url.pathname === '/api/analytics/history') {
     return Promise.resolve(sampleHistory(Number(query.get('limit') || 20)));
   }
-  if (path === '/api/analytics/predict') {
+  if (url.pathname === '/api/analytics/predict') {
     const horizon = Math.min(Math.max(Number(query.get('horizon') || 5), 1), 60);
     const current = browserTrafficSnapshot().total_vehicles;
     return Promise.resolve({
@@ -247,7 +247,7 @@ function browserDemoRequest(path, options = {}) {
       })),
     });
   }
-  if (path === '/api/video/status') {
+  if (url.pathname === '/api/video/status') {
     return Promise.resolve({
       path: query.get('path') || 'browser-simulation',
       exists: true,
