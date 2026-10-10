@@ -534,24 +534,16 @@ export default function App() {
               </span>
             </div>
 
-            {video?.running || video?.mode === 'AI_VIDEO' ? (
-              <img
-                key={streamKey}
-                className="video-stream"
-                src={streamUrl}
-                alt="Live traffic detection stream"
-                onError={() => {}}
-              />
-            ) : (
-              <div className="video-placeholder">
+            {BROWSER_DEMO && video?.running ? <BrowserIntersection traffic={traffic} />
+              : !BROWSER_DEMO && (video?.running || video?.mode === 'AI_VIDEO') ? (
+                <img key={streamKey} className="video-stream" src={streamUrl} alt="Live traffic detection stream" onError={() => {}} />
+              ) : <div className="video-placeholder">
                 <Video size={34} />
-                <strong>{sources.length ? 'Select a traffic video' : 'Add a local traffic video'}</strong>
-                <span>
-                  Videos must be stored under <code>data/videos/</code>.
-                  Phase 7 can use any readable MP4/AVI/MOV/MKV/M4V file.
-                </span>
-              </div>
-            )}
+                <strong>{BROWSER_DEMO ? 'Start the browser traffic simulation' : sources.length ? 'Select a traffic video' : 'Add a local traffic video'}</strong>
+                <span>{BROWSER_DEMO
+                  ? 'The animated intersection uses generated traffic data so your professor can explore the dashboard in any browser.'
+                  : <>Videos must be stored under <code>data/videos/</code>. Phase 7 can use any readable MP4/AVI/MOV/MKV/M4V file.</>}</span>
+              </div>}
 
             <div className="video-controls">
               <div className="source-picker">
