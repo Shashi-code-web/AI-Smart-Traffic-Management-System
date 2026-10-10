@@ -2,7 +2,7 @@ import numpy as np
 
 from ai.counting.vehicle_counter import VehicleCounter
 from ai.density.traffic_density import DensityConfig, TrafficDensityEstimator
-from ai.detection.vehicle_detector import Detection
+from ai.detection.vehicle_detector import Detection, VehicleDetector
 from ai.lane.lane_mapper import Lane
 from ai.pipeline.traffic_pipeline import TrafficPipeline
 from ai.signals.adaptive_signal import AdaptiveSignalController, SignalConfig
@@ -16,6 +16,21 @@ class FakeDetector:
 
     def track(self, _frame):
         return next(self.frames)
+
+
+def test_vehicle_detector_uses_model_labels_to_avoid_false_vehicle_counts():
+    assert VehicleDetector._is_supported_label(1, "bicycle")
+    assert VehicleDetector._is_supported_label(2, "car")
+    assert VehicleDetector._is_supported_label(0, "ambulance")
+    assert VehicleDetector._is_supported_label(19, "fire-truck")
+    assert VehicleDetector._is_supported_label(23, "car")
+
+    # A custom model can reuse a COCO ID for a different class; its label wins.
+    assert not VehicleDetector._is_supported_label(1, "person")
+    assert not VehicleDetector._is_supported_label(2, "traffic light")
+
+    # If a model provides no label at all, retain the standard COCO ID fallback.
+    assert VehicleDetector._is_supported_label(2, None)
 
 
 def test_vehicle_counter_keeps_unique_track_ids_and_class_counts():
