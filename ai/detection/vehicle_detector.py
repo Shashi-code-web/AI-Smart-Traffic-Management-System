@@ -71,9 +71,22 @@ class VehicleDetector:
 
     @classmethod
     def _is_supported_label(cls, class_id: int, label: str | None) -> bool:
-        if class_id in cls.VEHICLE_CLASSES:
-            return True
-        return bool(label and label.strip().lower() in cls.EMERGENCY_LABELS)
+        # Prefer the model's label when present. Custom-trained YOLO models may
+        # assign different class IDs, so an ID alone must not turn a person or
+        # another non-vehicle into a traffic vehicle.
+        if label is None or not label.strip():
+            return class_id in cls.VEHICLE_CLASSES
+
+        def normalize(value: str) -> str:
+            return " ".join(
+                value.strip().lower().replace("_", " ").replace("-", " ").split()
+            )
+
+        supported_labels = {
+            normalize(value)
+            for value in set(cls.VEHICLE_CLASSES.values()) | cls.EMERGENCY_LABELS
+        }
+        return normalize(label) in supported_labels
 
     @classmethod
     def _from_result(cls, result: Any) -> list[Detection]:
