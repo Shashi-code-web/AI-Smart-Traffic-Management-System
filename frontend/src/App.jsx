@@ -225,14 +225,20 @@ export default function App() {
             <h1>{view === 'overview' ? 'Intersection Overview' : titleCase(view)}</h1>
           </div>
           <div className="topbar-actions">
-            <ConnectionBadge connected={Boolean(health?.status === 'ok')} checking={checking} />
+            <ConnectionBadge connected={Boolean(health?.status === 'ok')} checking={checking} browserDemo={BROWSER_DEMO} />
             <button className="icon-button" onClick={refresh} disabled={busy} title="Refresh data">
               <RefreshCw size={15} className={busy ? 'spin' : ''} />
             </button>
           </div>
         </header>
 
-        {error && <div className="error-banner">{error}</div>}
+        {BROWSER_DEMO && <div className="demo-mode-banner" role="note">
+          <div className="demo-mode-mark"><Activity size={17} /></div>
+          <div><strong>Public interactive demo · simulated traffic</strong>
+            <span>This website runs without installation. Counts, signal phases and forecasts are generated demo data, not live CCTV or real YOLO inference. The full AI video pipeline runs in the local laptop version.</span>
+          </div>
+        </div>}
+        {error && <div className="error-banner" role="alert">{error}</div>
 
         {view === 'settings' ? (
           <section className="analytics-layout">
@@ -240,8 +246,8 @@ export default function App() {
               <Metric
                 icon={Wifi}
                 label="Backend"
-                value={health?.status === 'ok' ? 'ONLINE' : 'OFFLINE'}
-                note={health?.version ? 'API v' + health.version : 'Health endpoint'}
+                value={BROWSER_DEMO ? 'DEMO' : health?.status === 'ok' ? 'ONLINE' : 'OFFLINE'}
+                note={BROWSER_DEMO ? 'No backend required' : health?.version ? 'API v' + health.version : 'Health endpoint'}
               />
               <Metric
                 icon={Car}
@@ -252,14 +258,14 @@ export default function App() {
               <Metric
                 icon={Radio}
                 label="Database"
-                value={status?.database_ready ? 'READY' : 'ERROR'}
-                note="SQLite local persistence"
+                value={BROWSER_DEMO ? 'N/A' : status?.database_ready ? 'READY' : 'ERROR'}
+                note={BROWSER_DEMO ? 'No hosted database' : 'SQLite local persistence'}
               />
               <Metric
                 icon={Video}
                 label="Video sources"
                 value={sources.length}
-                note="Readable local sources"
+                note={BROWSER_DEMO ? 'Built-in browser simulator' : 'Readable local sources'}
               />
             </div>
 
@@ -493,7 +499,7 @@ export default function App() {
         ) : null}
 
         <section className="metrics">
-          <Metric icon={Car} label="Vehicles detected" value={traffic?.total_vehicles ?? '—'} note={video?.running ? 'Live AI snapshot' : 'Current traffic snapshot'} />
+          <Metric icon={Car} label={BROWSER_DEMO ? 'Vehicles in simulation' : 'Vehicles detected'} value={traffic?.total_vehicles ?? '—'} note={BROWSER_DEMO ? 'Generated sample traffic' : video?.running ? 'Live AI snapshot' : 'Current traffic snapshot'} />
           <Metric icon={Gauge} label="Traffic density" value={overallDensity} note="Highest lane demand" />
           <Metric
             icon={Signal}
@@ -511,7 +517,7 @@ export default function App() {
             <div className="section-head">
               <div>
                 <h2>AI Traffic Monitor</h2>
-                <p>{sessionLabel}</p>
+                <p>{BROWSER_DEMO ? (video?.running ? 'Browser simulation running' : 'Interactive browser simulator') : sessionLabel}</p>
               </div>
               <span className="live-tag">
                 <span className="dot" /> {video?.running ? 'LIVE' : (video?.mode === 'AI_VIDEO' ? 'DONE' : 'READY')}
@@ -539,7 +545,7 @@ export default function App() {
 
             <div className="video-controls">
               <div className="source-picker">
-                <label htmlFor="video-source">Video source</label>
+                <label htmlFor="video-source">{BROWSER_DEMO ? 'Simulation source' : 'Video source'}</label>
                 <select
                   id="video-source"
                   value={selectedSource}
@@ -611,7 +617,7 @@ export default function App() {
 
         <section className="card">
           <div className="section-head">
-            <div><h2>Lane Conditions</h2><p>Updated from the backend every 1.5 seconds</p></div>
+            <div><h2>Lane Conditions</h2><p>{BROWSER_DEMO ? 'Browser-generated simulation updates every 1.5 seconds' : 'Updated from the backend every 1.5 seconds'}</p></div>
           </div>
           <div className="lane-table">
             <div className="lane-row lane-header">
