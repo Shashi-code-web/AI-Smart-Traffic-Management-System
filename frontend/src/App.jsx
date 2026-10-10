@@ -4,7 +4,7 @@ import {
   Signal, Square, TrendingUp, Video, Wifi, WifiOff,
 } from 'lucide-react';
 import {
-  API_BASE, getAnalyticsHistory, getAnalyticsPrediction, getAnalyticsSummary,
+  API_BASE, BROWSER_DEMO, getAnalyticsHistory, getAnalyticsPrediction, getAnalyticsSummary,
   getHealth, getSystemDiagnostics, getSystemStatus, getTrafficSnapshot,
   getVideoSession, getVideoSources, startVideo, stopVideo,
 } from './services/api';
@@ -33,16 +33,33 @@ function Metric({ icon: Icon, label, value, note }) {
   );
 }
 
-function ConnectionBadge({ connected, checking }) {
-  if (checking) {
-    return <div className="status"><span className="dot muted" /> Checking backend…</div>;
-  }
-  return (
-    <div className={'status ' + (connected ? 'status-online' : 'status-offline')}>
-      {connected ? <Wifi size={13} /> : <WifiOff size={13} />}
-      {connected ? 'Backend connected' : 'Backend offline'}
-    </div>
-  );
+function ConnectionBadge({ connected, checking, browserDemo }) {
+  if (checking) return <div className="status"><span className="dot muted" /> Preparing dashboard…</div>;
+  if (browserDemo) return <div className="status status-online"><Activity size={13} /> Browser demo ready</div>;
+  return <div className={'status ' + (connected ? 'status-online' : 'status-offline')}>
+    {connected ? <Wifi size={13} /> : <WifiOff size={13} />}
+    {connected ? 'Backend connected' : 'Backend offline'}
+  </div>;
+}
+
+function BrowserIntersection({ traffic }) {
+  const lanes = Object.fromEntries((traffic?.lanes || []).map((lane) => [lane.direction, lane]));
+  const lane = (direction) => lanes[direction] || {};
+  return <div className="browser-intersection" role="img" aria-label="Animated simulated four-way road intersection with traffic from all four directions">
+    <div className="road road-horizontal" /><div className="road road-vertical" />
+    <div className="road-markings markings-horizontal" /><div className="road-markings markings-vertical" />
+    <div className="crosswalk crosswalk-top" /><div className="crosswalk crosswalk-bottom" />
+    <div className="crosswalk crosswalk-left" /><div className="crosswalk crosswalk-right" />
+    <div className="junction-center"><span>AI<br />NODE</span></div>
+    {['NORTH','EAST','SOUTH','WEST'].map((direction) => <div key={direction} className={'junction-label junction-' + direction.toLowerCase()}>
+      <strong>{direction}</strong><span>{lane(direction).vehicle_count ?? 0} vehicles</span>
+      <i className={'mini-light ' + (lane(direction).signal || 'red').toLowerCase()} />
+    </div>)}
+    <span className="demo-car car-north-one" /><span className="demo-car car-north-two" />
+    <span className="demo-car car-south-one" /><span className="demo-car car-east-one" />
+    <span className="demo-car car-east-two" /><span className="demo-car car-west-one" />
+    <div className="simulation-chip"><span className="dot" /> SIMULATED LIVE TRAFFIC</div>
+  </div>;
 }
 
 export default function App() {
@@ -208,14 +225,20 @@ export default function App() {
             <h1>{view === 'overview' ? 'Intersection Overview' : titleCase(view)}</h1>
           </div>
           <div className="topbar-actions">
-            <ConnectionBadge connected={Boolean(health?.status === 'ok')} checking={checking} />
+            <ConnectionBadge connected={Boolean(health?.status === 'ok')} checking={checking} browserDemo={BROWSER_DEMO} />
             <button className="icon-button" onClick={refresh} disabled={busy} title="Refresh data">
               <RefreshCw size={15} className={busy ? 'spin' : ''} />
             </button>
           </div>
         </header>
 
-        {error && <div className="error-banner">{error}</div>}
+        {BROWSER_DEMO && <div className="demo-mode-banner" role="note">
+          <div className="demo-mode-mark"><Activity size={17} /></div>
+          <div><strong>Public interactive demo · simulated traffic</strong>
+            <span>This website runs without installation. Counts, signal phases and forecasts are generated demo data, not live CCTV or real YOLO inference. The full AI video pipeline runs in the local laptop version.</span>
+          </div>
+        </div>}
+        {error && <div className="error-banner" role="alert">{error}</div>}
 
         {view === 'settings' ? (
           <section className="analytics-layout">
@@ -223,8 +246,8 @@ export default function App() {
               <Metric
                 icon={Wifi}
                 label="Backend"
-                value={health?.status === 'ok' ? 'ONLINE' : 'OFFLINE'}
-                note={health?.version ? 'API v' + health.version : 'Health endpoint'}
+                value={BROWSER_DEMO ? 'DEMO' : health?.status === 'ok' ? 'ONLINE' : 'OFFLINE'}
+                note={BROWSER_DEMO ? 'No backend required' : health?.version ? 'API v' + health.version : 'Health endpoint'}
               />
               <Metric
                 icon={Car}
@@ -235,14 +258,14 @@ export default function App() {
               <Metric
                 icon={Radio}
                 label="Database"
-                value={status?.database_ready ? 'READY' : 'ERROR'}
-                note="SQLite local persistence"
+                value={BROWSER_DEMO ? 'N/A' : status?.database_ready ? 'READY' : 'ERROR'}
+                note={BROWSER_DEMO ? 'No hosted database' : 'SQLite local persistence'}
               />
               <Metric
                 icon={Video}
                 label="Video sources"
                 value={sources.length}
-                note="Readable local sources"
+                note={BROWSER_DEMO ? 'Built-in browser simulator' : 'Readable local sources'}
               />
             </div>
 
@@ -278,11 +301,19 @@ export default function App() {
                   </div>
                 </div>
                 <div className="demo-steps">
-                  <div><b>01</b><span>Open Overview and verify backend + database.</span></div>
-                  <div><b>02</b><span>Select one of the local traffic videos.</span></div>
-                  <div><b>03</b><span>Start AI Video; use simulation mode when no local YOLO model is installed.</span></div>
-                  <div><b>04</b><span>Show signal phase, lane density, analytics, then Emergency view.</span></div>
-                  <div><b>05</b><span>Finish by showing Diagnostics and final system status.</span></div>
+                  {BROWSER_DEMO ? <>
+                    <div><b>01</b><span>Review lane counts and adaptive signal phases.</span></div>
+                    <div><b>02</b><span>Open Live Monitor and start the animated browser simulation.</span></div>
+                    <div><b>03</b><span>Compare lane density, signal states and countdowns.</span></div>
+                    <div><b>04</b><span>Explore traffic history and the sample five-minute forecast.</span></div>
+                    <div><b>05</b><span>Use this as a public UI demo; demonstrate real YOLO processing locally.</span></div>
+                  </> : <>
+                    <div><b>01</b><span>Open Overview and verify backend + database.</span></div>
+                    <div><b>02</b><span>Select one of the local traffic videos.</span></div>
+                    <div><b>03</b><span>Start AI Video; use simulation mode when no local YOLO model is installed.</span></div>
+                    <div><b>04</b><span>Show signal phase, lane density, analytics, then Emergency view.</span></div>
+                    <div><b>05</b><span>Finish by showing Diagnostics and final system status.</span></div>
+                  </>}
                 </div>
               </div>
             </div>
@@ -337,11 +368,11 @@ export default function App() {
                         ? titleCase(traffic.emergency_type || 'emergency vehicle') + ' detected'
                         : 'No emergency vehicle detected'}
                     </strong>
-                    <span>
-                      {traffic?.emergency_detected
-                        ? 'Direction: ' + titleCase(traffic.emergency_direction || 'unmapped') + '. The controller uses yellow and all-red clearance before priority green.'
-                        : 'Emergency recognition requires a local YOLO model trained with supported ambulance, fire-truck, police, or emergency-vehicle classes.'}
-                    </span>
+                    <span>{traffic?.emergency_detected
+                      ? 'Direction: ' + titleCase(traffic.emergency_direction || 'unmapped') + '. The controller uses yellow and all-red clearance before priority green.'
+                      : BROWSER_DEMO
+                        ? 'This public browser demo does not run image-based emergency recognition. The local version can detect supported classes with a compatible trained YOLO model.'
+                        : 'Emergency recognition requires a local YOLO model trained with supported ambulance, fire-truck, police, or emergency-vehicle classes.'}</span>
                   </div>
                 </div>
               </div>
@@ -470,13 +501,15 @@ export default function App() {
           <div className="card info-panel">
             <strong>{titleCase(view)} module</strong>
             <span>
-              This dashboard is connected to the live backend. Advanced {view} intelligence is implemented in its later project phase.
+              {BROWSER_DEMO
+                ? 'This public website demonstrates the dashboard interface and simulated traffic states without requiring a local backend.'
+                : 'This dashboard is connected to the live backend. Advanced ' + view + ' intelligence is implemented in its later project phase.'}
             </span>
           </div>
         ) : null}
 
         <section className="metrics">
-          <Metric icon={Car} label="Vehicles detected" value={traffic?.total_vehicles ?? '—'} note={video?.running ? 'Live AI snapshot' : 'Current traffic snapshot'} />
+          <Metric icon={Car} label={BROWSER_DEMO ? 'Vehicles in simulation' : 'Vehicles detected'} value={traffic?.total_vehicles ?? '—'} note={BROWSER_DEMO ? 'Generated sample traffic' : video?.running ? 'Live AI snapshot' : 'Current traffic snapshot'} />
           <Metric icon={Gauge} label="Traffic density" value={overallDensity} note="Highest lane demand" />
           <Metric
             icon={Signal}
@@ -494,35 +527,27 @@ export default function App() {
             <div className="section-head">
               <div>
                 <h2>AI Traffic Monitor</h2>
-                <p>{sessionLabel}</p>
+                <p>{BROWSER_DEMO ? (video?.running ? 'Browser simulation running' : 'Interactive browser simulator') : sessionLabel}</p>
               </div>
               <span className="live-tag">
                 <span className="dot" /> {video?.running ? 'LIVE' : (video?.mode === 'AI_VIDEO' ? 'DONE' : 'READY')}
               </span>
             </div>
 
-            {video?.running || video?.mode === 'AI_VIDEO' ? (
-              <img
-                key={streamKey}
-                className="video-stream"
-                src={streamUrl}
-                alt="Live traffic detection stream"
-                onError={() => {}}
-              />
-            ) : (
-              <div className="video-placeholder">
+            {BROWSER_DEMO && video?.running ? <BrowserIntersection traffic={traffic} />
+              : !BROWSER_DEMO && (video?.running || video?.mode === 'AI_VIDEO') ? (
+                <img key={streamKey} className="video-stream" src={streamUrl} alt="Live traffic detection stream" onError={() => {}} />
+              ) : <div className="video-placeholder">
                 <Video size={34} />
-                <strong>{sources.length ? 'Select a traffic video' : 'Add a local traffic video'}</strong>
-                <span>
-                  Videos must be stored under <code>data/videos/</code>.
-                  Phase 7 can use any readable MP4/AVI/MOV/MKV/M4V file.
-                </span>
-              </div>
-            )}
+                <strong>{BROWSER_DEMO ? 'Start the browser traffic simulation' : sources.length ? 'Select a traffic video' : 'Add a local traffic video'}</strong>
+                <span>{BROWSER_DEMO
+                  ? 'The animated intersection uses generated traffic data so your professor can explore the dashboard in any browser.'
+                  : <>Videos must be stored under <code>data/videos/</code>. Phase 7 can use any readable MP4/AVI/MOV/MKV/M4V file.</>}</span>
+              </div>}
 
             <div className="video-controls">
               <div className="source-picker">
-                <label htmlFor="video-source">Video source</label>
+                <label htmlFor="video-source">{BROWSER_DEMO ? 'Simulation source' : 'Video source'}</label>
                 <select
                   id="video-source"
                   value={selectedSource}
@@ -594,7 +619,7 @@ export default function App() {
 
         <section className="card">
           <div className="section-head">
-            <div><h2>Lane Conditions</h2><p>Updated from the backend every 1.5 seconds</p></div>
+            <div><h2>Lane Conditions</h2><p>{BROWSER_DEMO ? 'Browser-generated simulation updates every 1.5 seconds' : 'Updated from the backend every 1.5 seconds'}</p></div>
           </div>
           <div className="lane-table">
             <div className="lane-row lane-header">
