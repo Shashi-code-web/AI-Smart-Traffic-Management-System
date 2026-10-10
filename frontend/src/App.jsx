@@ -4,7 +4,7 @@ import {
   Signal, Square, TrendingUp, Video, Wifi, WifiOff,
 } from 'lucide-react';
 import {
-  API_BASE, getAnalyticsHistory, getAnalyticsPrediction, getAnalyticsSummary,
+  API_BASE, BROWSER_DEMO, getAnalyticsHistory, getAnalyticsPrediction, getAnalyticsSummary,
   getHealth, getSystemDiagnostics, getSystemStatus, getTrafficSnapshot,
   getVideoSession, getVideoSources, startVideo, stopVideo,
 } from './services/api';
@@ -33,16 +33,33 @@ function Metric({ icon: Icon, label, value, note }) {
   );
 }
 
-function ConnectionBadge({ connected, checking }) {
-  if (checking) {
-    return <div className="status"><span className="dot muted" /> Checking backend…</div>;
-  }
-  return (
-    <div className={'status ' + (connected ? 'status-online' : 'status-offline')}>
-      {connected ? <Wifi size={13} /> : <WifiOff size={13} />}
-      {connected ? 'Backend connected' : 'Backend offline'}
-    </div>
-  );
+function ConnectionBadge({ connected, checking, browserDemo }) {
+  if (checking) return <div className="status"><span className="dot muted" /> Preparing dashboard…</div>;
+  if (browserDemo) return <div className="status status-online"><Activity size={13} /> Browser demo ready</div>;
+  return <div className={'status ' + (connected ? 'status-online' : 'status-offline')}>
+    {connected ? <Wifi size={13} /> : <WifiOff size={13} />}
+    {connected ? 'Backend connected' : 'Backend offline'}
+  </div>;
+}
+
+function BrowserIntersection({ traffic }) {
+  const lanes = Object.fromEntries((traffic?.lanes || []).map((lane) => [lane.direction, lane]));
+  const lane = (direction) => lanes[direction] || {};
+  return <div className="browser-intersection" role="img" aria-label="Animated simulated four-way road intersection with traffic from all four directions">
+    <div className="road road-horizontal" /><div className="road road-vertical" />
+    <div className="road-markings markings-horizontal" /><div className="road-markings markings-vertical" />
+    <div className="crosswalk crosswalk-top" /><div className="crosswalk crosswalk-bottom" />
+    <div className="crosswalk crosswalk-left" /><div className="crosswalk crosswalk-right" />
+    <div className="junction-center"><span>AI<br />NODE</span></div>
+    {['NORTH','EAST','SOUTH','WEST'].map((direction) => <div key={direction} className={'junction-label junction-' + direction.toLowerCase()}>
+      <strong>{direction}</strong><span>{lane(direction).vehicle_count ?? 0} vehicles</span>
+      <i className={'mini-light ' + (lane(direction).signal || 'red').toLowerCase()} />
+    </div>)}
+    <span className="demo-car car-north-one" /><span className="demo-car car-north-two" />
+    <span className="demo-car car-south-one" /><span className="demo-car car-east-one" />
+    <span className="demo-car car-east-two" /><span className="demo-car car-west-one" />
+    <div className="simulation-chip"><span className="dot" /> SIMULATED LIVE TRAFFIC</div>
+  </div>;
 }
 
 export default function App() {
