@@ -301,11 +301,19 @@ export default function App() {
                   </div>
                 </div>
                 <div className="demo-steps">
-                  <div><b>01</b><span>Open Overview and verify backend + database.</span></div>
-                  <div><b>02</b><span>Select one of the local traffic videos.</span></div>
-                  <div><b>03</b><span>Start AI Video; use simulation mode when no local YOLO model is installed.</span></div>
-                  <div><b>04</b><span>Show signal phase, lane density, analytics, then Emergency view.</span></div>
-                  <div><b>05</b><span>Finish by showing Diagnostics and final system status.</span></div>
+                  {BROWSER_DEMO ? <>
+                    <div><b>01</b><span>Review lane counts and adaptive signal phases.</span></div>
+                    <div><b>02</b><span>Open Live Monitor and start the animated browser simulation.</span></div>
+                    <div><b>03</b><span>Compare lane density, signal states and countdowns.</span></div>
+                    <div><b>04</b><span>Explore traffic history and the sample five-minute forecast.</span></div>
+                    <div><b>05</b><span>Use this as a public UI demo; demonstrate real YOLO processing locally.</span></div>
+                  </> : <>
+                    <div><b>01</b><span>Open Overview and verify backend + database.</span></div>
+                    <div><b>02</b><span>Select one of the local traffic videos.</span></div>
+                    <div><b>03</b><span>Start AI Video; use simulation mode when no local YOLO model is installed.</span></div>
+                    <div><b>04</b><span>Show signal phase, lane density, analytics, then Emergency view.</span></div>
+                    <div><b>05</b><span>Finish by showing Diagnostics and final system status.</span></div>
+                  </>}
                 </div>
               </div>
             </div>
@@ -360,11 +368,11 @@ export default function App() {
                         ? titleCase(traffic.emergency_type || 'emergency vehicle') + ' detected'
                         : 'No emergency vehicle detected'}
                     </strong>
-                    <span>
-                      {traffic?.emergency_detected
-                        ? 'Direction: ' + titleCase(traffic.emergency_direction || 'unmapped') + '. The controller uses yellow and all-red clearance before priority green.'
-                        : 'Emergency recognition requires a local YOLO model trained with supported ambulance, fire-truck, police, or emergency-vehicle classes.'}
-                    </span>
+                    <span>{traffic?.emergency_detected
+                      ? 'Direction: ' + titleCase(traffic.emergency_direction || 'unmapped') + '. The controller uses yellow and all-red clearance before priority green.'
+                      : BROWSER_DEMO
+                        ? 'This public browser demo does not run image-based emergency recognition. The local version can detect supported classes with a compatible trained YOLO model.'
+                        : 'Emergency recognition requires a local YOLO model trained with supported ambulance, fire-truck, police, or emergency-vehicle classes.'}</span>
                   </div>
                 </div>
               </div>
@@ -493,7 +501,9 @@ export default function App() {
           <div className="card info-panel">
             <strong>{titleCase(view)} module</strong>
             <span>
-              This dashboard is connected to the live backend. Advanced {view} intelligence is implemented in its later project phase.
+              {BROWSER_DEMO
+                ? 'This public website demonstrates the dashboard interface and simulated traffic states without requiring a local backend.'
+                : 'This dashboard is connected to the live backend. Advanced ' + view + ' intelligence is implemented in its later project phase.'}
             </span>
           </div>
         ) : null}
